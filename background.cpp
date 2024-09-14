@@ -9,14 +9,20 @@
 #include "imageLoader.h"
 #include "platform.cpp"
 
-Image img[1]= {"src/assets/textures/menu/background.png"};
-Platform platform("src/assets/textures/ground/platform.png", 320.0f, 100.0f, 200.0f, 50.0f); 
-float scrollSpeed = 0.00001;
+Image img[2]= {
+	"src/assets/textures/menu/background.png",
+	"src/assets/textures/ground/platform.png"
+};
+
+Platform platform(&img[1], 320.0f, 100.0f, 641.0f, 231.0f); 
+float scrollSpeed = 0.0001;
 
 class Texture {
 public:
 	Image *backImage;
 	GLuint backTexture;
+	Image *platformImage;
+	GLuint platformTexture;
 	float xc[2];
 	float yc[2];
 };
@@ -169,6 +175,21 @@ void init_opengl(void)
 	g.tex.xc[1] = 0.25;
 	g.tex.yc[0] = 0.0;
 	g.tex.yc[1] = 1.0;
+
+	g.tex.platformImage = &img[1];
+	//leaving this renders a white block 
+	//glGenTextures(1, &g.tex.backTexture);
+	w = g.tex.platformImage->width;
+	h = g.tex.platformImage->height;
+	glBindTexture(GL_TEXTURE_2D, g.tex.platformTexture);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+
+	//Added the Alpha function from rainforest.cpp example then followed its implementation 
+	unsigned char *platformData = g.tex.platformImage->buildAlphaData(&img[1]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
+							GL_RGBA, GL_UNSIGNED_BYTE, platformData);
+	free(platformData);
 }
 
 void check_mouse(XEvent *e)
@@ -227,6 +248,9 @@ void render()
 		glTexCoord2f(g.tex.xc[1], g.tex.yc[0]); glVertex2i(g.xres, g.yres);
 		glTexCoord2f(g.tex.xc[1], g.tex.yc[1]); glVertex2i(g.xres, 0);
 	glEnd();
+	//Added this to remove trim to only show the platform
+	glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     platform.render();
 
 }

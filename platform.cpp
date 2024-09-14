@@ -6,20 +6,19 @@ public:
     GLuint texture;
     float x, y, width, height;
 
-    Platform(const char *filename, float xpos, float ypos, float w, float h)
+    Platform(Image* img, float xpos, float ypos, float w, float h)
         : x(xpos), y(ypos), width(w), height(h) {
-            Image img(filename);
 
-        if (!img.data) {
-            printf("Failed to load image: %s\n", filename);
-        return;
+        if (!img->data) {
+            printf("Failed to load image:");
+            return;
         }
         
-        printf("Image loaded: %s, Width: %d, Height: %d\n", filename, img.width, img.height);
+        printf("Image loaded: Width: %d, Height: %d\n", img->width, img->height);
 
         glGenTextures(1, &texture);
         glBindTexture(GL_TEXTURE_2D, texture);
-        glTexImage2D(GL_TEXTURE_2D, 0, 3, img.width, img.height, 0, GL_RGB, GL_UNSIGNED_BYTE, img.data);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img->width, img->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, img->data);
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
