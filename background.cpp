@@ -6,7 +6,8 @@
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
 #include <GL/glx.h>
-#include "imageLoader.h"
+#include "src/setup/imageLoader.h"
+#include "src/setup/Global.h"
 #include "platform.cpp"
 
 Image img[2]= {
@@ -14,27 +15,10 @@ Image img[2]= {
 	"src/assets/textures/ground/platform.png"
 };
 
+Global g;
+
 Platform platform(&img[1], 320.0f, 100.0f, 641.0f, 231.0f); 
 float scrollSpeed = 0.0001;
-
-class Texture {
-public:
-	Image *backImage;
-	GLuint backTexture;
-	Image *platformImage;
-	GLuint platformTexture;
-	float xc[2];
-	float yc[2];
-};
-
-class Global {
-public:
-	int xres, yres;
-	Texture tex;
-	Global() {
-		xres=640, yres=480;
-	}
-} g;
 
 class X11_wrapper {
 private:
@@ -91,7 +75,7 @@ public:
 	void set_title() {
 		//Set the window title bar.
 		XMapWindow(dpy, win);
-		XStoreName(dpy, win, "scrolling background (seamless)");
+		XStoreName(dpy, win, "~ Dino-Run! ~");
 	}
 	bool getXPending() {
 		return XPending(dpy);
@@ -222,9 +206,13 @@ int check_keys(XEvent *e)
 	//Was there input from the keyboard?
 	if (e->type == KeyPress) {
 		int key = XLookupKeysym(&e->xkey, 0);
+		if (key == XK_p) {
+			g.paused = !g.paused;
+		}
 		if (key == XK_Escape) {
 			return 1;
 		}
+		
 	}
 	return 0;
 }
@@ -232,8 +220,11 @@ int check_keys(XEvent *e)
 void physics()
 {
 	//move the background
-	g.tex.xc[0] += scrollSpeed;
-	g.tex.xc[1] += scrollSpeed;
+	if(!g.paused)
+	{
+		g.tex.xc[0] += scrollSpeed;
+		g.tex.xc[1] += scrollSpeed;
+	}
 }
 
 void render()

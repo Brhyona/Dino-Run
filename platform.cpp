@@ -1,4 +1,4 @@
-#include "imageLoader.h"
+#include "src/setup/imageLoader.h"
 #include <GL/glx.h>
 
 class Platform {
