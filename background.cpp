@@ -1,3 +1,4 @@
+#include <chrono>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -8,7 +9,7 @@
 #include <GL/glx.h>
 #include "src/setup/imageLoader.h"
 #include "src/setup/Global.h"
-#include "platform.cpp"
+#include "src/setup/jpompa.h"
 
 Image img[2]= {
 	"src/assets/textures/menu/background.png",
@@ -107,12 +108,14 @@ int check_keys(XEvent *e);
 void physics(void);
 void render(void);
 
+std::chrono::high_resolution_clock::time_point lastTime;
 
 //===========================================================================
 //===========================================================================
 int main()
 {
 	init_opengl();
+	lastTime = std::chrono::high_resolution_clock::now();
 	int done=0;
 	while (!done) {
 		while (x11.getXPending()) {
@@ -220,11 +223,17 @@ int check_keys(XEvent *e)
 void physics()
 {
 	//move the background
+	auto currentTime = std::chrono::high_resolution_clock::now();
+	std::chrono::duration<float> elapsed = currentTime - lastTime;
+	float deltaTime = elapsed.count();
+	lastTime = currentTime;
 	if(!g.paused)
 	{
 		g.tex.xc[0] += scrollSpeed;
 		g.tex.xc[1] += scrollSpeed;
+		platform.updatePlatforms(g.xres, g.yres, deltaTime);
 	}
+	
 }
 
 void render()
@@ -232,7 +241,7 @@ void render()
 	glEnable(GL_TEXTURE_2D);
 	glClear(GL_COLOR_BUFFER_BIT);
 	glColor3f(1.0, 1.0, 1.0);
-	glBindTexture(GL_TEXTURE_2D, g.tex.backTexture);
+	glBindTexture(GL_TEXTURE_2D, g.tex.backTexture);	
 	glBegin(GL_QUADS);
 		glTexCoord2f(g.tex.xc[0], g.tex.yc[1]); glVertex2i(0, 0);
 		glTexCoord2f(g.tex.xc[0], g.tex.yc[0]); glVertex2i(0, g.yres);
@@ -243,5 +252,4 @@ void render()
 	glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     platform.render();
-
 }
