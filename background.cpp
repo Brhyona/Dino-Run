@@ -110,8 +110,6 @@ void render(void);
 
 std::chrono::high_resolution_clock::time_point lastTime;
 
-//===========================================================================
-//===========================================================================
 int main()
 {
 	init_opengl();
@@ -172,7 +170,6 @@ void init_opengl(void)
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
 
-	//Added the Alpha function from rainforest.cpp example then followed its implementation 
 	unsigned char *platformData = g.tex.platformImage->buildAlphaData(&img[1]);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
 							GL_RGBA, GL_UNSIGNED_BYTE, platformData);
@@ -222,7 +219,6 @@ int check_keys(XEvent *e)
 
 void physics()
 {
-	//move the background
 	auto currentTime = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<float> elapsed = currentTime - lastTime;
 	float deltaTime = elapsed.count();
@@ -248,8 +244,13 @@ void render()
 		glTexCoord2f(g.tex.xc[1], g.tex.yc[0]); glVertex2i(g.xres, g.yres);
 		glTexCoord2f(g.tex.xc[1], g.tex.yc[1]); glVertex2i(g.xres, 0);
 	glEnd();
-	//Added this to remove trim to only show the platform
-	glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	//Transparent platform works now thanks to gordans explanation. 
+	glBindTexture(GL_TEXTURE_2D, g.tex.platformTexture);
+	glEnable(GL_ALPHA_TEST);
+	glAlphaFunc(GL_GREATER, 0.0f);
+	glColor4ub(255,255,255,255);
+	
+	//glEnable(GL_BLEND);
+    //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     platform.render();
 }
