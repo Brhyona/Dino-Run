@@ -44,7 +44,7 @@ void displayMessage() {
     bool playAgain = true;
 
     while (playAgain) {
-        bool gameWon = gameLogic();
+     //   bool gameWon = gameLogic();
 
         // Need to have game logic
 

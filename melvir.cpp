@@ -45,7 +45,7 @@ void drawCharacter(const Character& character) {
 void cleanup(Character& character) {
     glDeleteTextures(1, &character.texture);
 }
-
+/*
 // Function to handle key events and update the character's position
 void handleInput(XEvent& event, Character& character) {
     if (event.type == KeyPress) {
@@ -74,3 +74,4 @@ void handleInput(XEvent& event, Character& character) {
         }
     }
 }
+*/
