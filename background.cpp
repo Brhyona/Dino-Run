@@ -10,6 +10,8 @@
 #include "src/setup/imageLoader.h"
 #include "src/setup/Global.h"
 #include "src/setup/jpompa.h"
+#include "src/setup/melvir.h"
+
 
 Image img[2]= {
 	"src/assets/textures/menu/background.png",
