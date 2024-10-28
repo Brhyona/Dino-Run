@@ -1,3 +1,4 @@
+#include <iostream>
 #include <chrono>
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,15 +13,41 @@
 #include "src/setup/jpompa.h"
 #include "src/setup/melvir.h"
 
-
-Image img[2]= {
+Image img[13]= {
 	"src/assets/textures/menu/background.png",
-	"src/assets/textures/ground/platform.png"
+	"src/assets/textures/ground/platform.png",
+	"src/assets/textures/ground/coin.png",
+	"src/assets/textures/player/avoid.png",
+	"src/assets/textures/player/bite.png",
+	"src/assets/textures/player/dash.png",
+	"src/assets/textures/player/dead.png",
+	"src/assets/textures/player/hurt.png",
+	"src/assets/textures/player/idle.png",
+	"src/assets/textures/player/jump.png",
+	"src/assets/textures/player/kick.png",
+	"src/assets/textures/player/move.png",
+	"src/assets/textures/player/scan.png"
+};
+
+Image* playerImages[NUM_STATES] = {
+	&img[3],
+	&img[4],
+	&img[5],
+	&img[6],
+	&img[7],
+	&img[8],
+	&img[9],
+	&img[10],
+	&img[11],
+	&img[12],
 };
 
 Global g;
 
-Platform platform(&img[1], 320.0f, 100.0f, 641.0f, 231.0f); 
+Platform platform(&img[1], 320.0f, 100.0f, 641.0f, 231.0f);
+Coin coin(&img[2], 100.0f, 200.0f, 32.0f, 32.0f, &platform); 
+Player player(playerImages, 320.0f, 100.0f, 64.0f, 64.0f);
+
 float scrollSpeed = 0.0001;
 
 class X11_wrapper {
@@ -145,11 +172,11 @@ void init_opengl(void)
 	//glClear(GL_COLOR_BUFFER_BIT);
 	//Do this to allow texture maps
 	glEnable(GL_TEXTURE_2D);
-	//
+	
 	//load the images file into a ppm structure.
-	//
+	
+	//Background
 	g.tex.backImage = &img[0];
-	//create opengl texture elements
 	glGenTextures(1, &g.tex.backTexture);
 	int w = g.tex.backImage->width;
 	int h = g.tex.backImage->height;
@@ -163,9 +190,8 @@ void init_opengl(void)
 	g.tex.yc[0] = 0.0;
 	g.tex.yc[1] = 1.0;
 
+	//Platform
 	g.tex.platformImage = &img[1];
-	//leaving this renders a white block 
-	//glGenTextures(1, &g.tex.backTexture);
 	w = g.tex.platformImage->width;
 	h = g.tex.platformImage->height;
 	glBindTexture(GL_TEXTURE_2D, g.tex.platformTexture);
@@ -176,6 +202,161 @@ void init_opengl(void)
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
 							GL_RGBA, GL_UNSIGNED_BYTE, platformData);
 	free(platformData);
+
+	//Coin
+	g.tex.coinImage = &img[2];
+	w = g.tex.coinImage->width;
+	h = g.tex.coinImage->height;
+	glGenTextures(1, &g.tex.coinTexture); 
+	glBindTexture(GL_TEXTURE_2D, g.tex.coinTexture);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+
+	unsigned char *coinData = g.tex.coinImage->buildAlphaData(&img[2]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
+							GL_RGBA, GL_UNSIGNED_BYTE, coinData);
+	free(coinData);
+
+	//Player Avoid
+	g.tex.playerAvoidImage = &img[3];
+	w = g.tex.playerAvoidImage->width;
+	h = g.tex.playerAvoidImage->height;
+	glGenTextures(1, &g.tex.playerAvoidTexture); 
+	glBindTexture(GL_TEXTURE_2D, g.tex.playerAvoidTexture);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+
+	unsigned char *playerAvoidData = g.tex.playerAvoidImage->buildAlphaData(&img[3]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
+							GL_RGBA, GL_UNSIGNED_BYTE, playerAvoidData);
+	free(playerAvoidData);
+
+	//Player Bite
+	g.tex.playerBiteImage = &img[4];
+	w = g.tex.playerBiteImage->width;
+	h = g.tex.playerBiteImage->height;
+	glGenTextures(1, &g.tex.playerBiteTexture); 
+	glBindTexture(GL_TEXTURE_2D, g.tex.playerBiteTexture);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+
+	unsigned char *playerBiteData = g.tex.playerBiteImage->buildAlphaData(&img[4]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
+							GL_RGBA, GL_UNSIGNED_BYTE, playerBiteData);
+	free(playerBiteData);
+	
+	//Player Dash
+ 	g.tex.playerDashImage = &img[5];
+	w = g.tex.playerDashImage->width;
+	h = g.tex.playerDashImage->height;
+	glGenTextures(1, &g.tex.playerDashTexture); 
+	glBindTexture(GL_TEXTURE_2D, g.tex.playerDashTexture);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+
+	unsigned char *playerDashData = g.tex.playerDashImage->buildAlphaData(&img[5]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
+							GL_RGBA, GL_UNSIGNED_BYTE, playerDashData);
+	free(playerDashData);
+
+	//Player Dead
+	g.tex.playerDeadImage = &img[6];
+	w = g.tex.playerDeadImage->width;
+	h = g.tex.playerDeadImage->height;
+	glGenTextures(1, &g.tex.playerDeadTexture); 
+	glBindTexture(GL_TEXTURE_2D, g.tex.playerDeadTexture);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+
+	unsigned char *playerDeadData = g.tex.playerDeadImage->buildAlphaData(&img[6]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
+							GL_RGBA, GL_UNSIGNED_BYTE, playerDeadData);
+	free(playerDeadData);
+
+	//Player Hurt
+	g.tex.playerHurtImage = &img[7];
+	w = g.tex.playerHurtImage->width;
+	h = g.tex.playerHurtImage->height;
+	glGenTextures(1, &g.tex.playerHurtTexture); 
+	glBindTexture(GL_TEXTURE_2D, g.tex.playerHurtTexture);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+
+	unsigned char *playerHurtData = g.tex.playerHurtImage->buildAlphaData(&img[7]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
+							GL_RGBA, GL_UNSIGNED_BYTE, playerHurtData);
+	free(playerHurtData);
+
+	//Player Idel
+	g.tex.playerIdelImage = &img[8];
+	w = g.tex.playerIdelImage->width;
+	h = g.tex.playerIdelImage->height;
+	glGenTextures(1, &g.tex.playerIdelTexture); 
+	glBindTexture(GL_TEXTURE_2D, g.tex.playerIdelTexture);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+
+	unsigned char *playerIdelData = g.tex.playerIdelImage->buildAlphaData(&img[8]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
+							GL_RGBA, GL_UNSIGNED_BYTE, playerIdelData);
+	free(playerIdelData);
+
+	//Player Jump	
+	g.tex.playerJumpImage = &img[9];
+	w = g.tex.playerJumpImage->width;
+	h = g.tex.playerJumpImage->height;
+	glGenTextures(1, &g.tex.playerJumpTexture); 
+	glBindTexture(GL_TEXTURE_2D, g.tex.playerJumpTexture);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+
+	unsigned char *playerJumpData = g.tex.playerJumpImage->buildAlphaData(&img[9]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
+							GL_RGBA, GL_UNSIGNED_BYTE, playerJumpData);
+	free(playerJumpData);
+
+	//Player Kick
+	g.tex.playerKickImage = &img[10];
+	w = g.tex.playerKickImage->width;
+	h = g.tex.playerKickImage->height;
+	glGenTextures(1, &g.tex.playerKickTexture); 
+	glBindTexture(GL_TEXTURE_2D, g.tex.playerKickTexture);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+
+	unsigned char *playerKickData = g.tex.playerKickImage->buildAlphaData(&img[10]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
+							GL_RGBA, GL_UNSIGNED_BYTE, playerKickData);
+	free(playerKickData);
+	
+	//Player Move	
+	g.tex.playerMoveImage = &img[11];
+	w = g.tex.playerMoveImage->width;
+	h = g.tex.playerMoveImage->height;
+	glGenTextures(1, &g.tex.playerMoveTexture); 
+	glBindTexture(GL_TEXTURE_2D, g.tex.playerMoveTexture);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+	std::cout << "Loaded playerMoveTexture ID: " << g.tex.playerMoveTexture << std::endl;
+
+	unsigned char *playerMoveData = g.tex.playerMoveImage->buildAlphaData(&img[11]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
+							GL_RGBA, GL_UNSIGNED_BYTE, playerMoveData);
+	free(playerMoveData);
+
+	//Player Scan	
+	g.tex.playerScanImage = &img[12];
+	w = g.tex.playerScanImage->width;
+	h = g.tex.playerScanImage->height;
+	glGenTextures(1, &g.tex.playerScanTexture); 
+	glBindTexture(GL_TEXTURE_2D, g.tex.playerScanTexture);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+
+	unsigned char *playerScanData = g.tex.playerScanImage->buildAlphaData(&img[12]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
+							GL_RGBA, GL_UNSIGNED_BYTE, playerScanData);
+	free(playerScanData);
 }
 
 void check_mouse(XEvent *e)
@@ -208,6 +389,8 @@ int check_keys(XEvent *e)
 	//Was there input from the keyboard?
 	if (e->type == KeyPress) {
 		int key = XLookupKeysym(&e->xkey, 0);
+		player.handleInput(key);
+
 		if (key == XK_p) {
 			g.paused = !g.paused;
 		}
@@ -230,6 +413,7 @@ void physics()
 		g.tex.xc[0] += scrollSpeed;
 		g.tex.xc[1] += scrollSpeed;
 		platform.updatePlatforms(g.xres, g.yres, deltaTime);
+		coin.updateCoins(g.xres, g.yres, deltaTime);
 	}
 	
 }
@@ -239,20 +423,42 @@ void render()
 	glEnable(GL_TEXTURE_2D);
 	glClear(GL_COLOR_BUFFER_BIT);
 	glColor3f(1.0, 1.0, 1.0);
+	
+	float screenAspect = static_cast<float>(g.xres) / g.yres;
+	float textureAspect = static_cast<float>(g.tex.backImage->width) / g.tex.backImage->height;
+	float widthScale = 1.0f;
+	float heightScale = 2.0f;
+
+	if (screenAspect > textureAspect) {
+    	widthScale = screenAspect / textureAspect;
+	} else {
+    	heightScale = textureAspect / screenAspect;
+	}
+
 	glBindTexture(GL_TEXTURE_2D, g.tex.backTexture);	
 	glBegin(GL_QUADS);
 		glTexCoord2f(g.tex.xc[0], g.tex.yc[1]); glVertex2i(0, 0);
-		glTexCoord2f(g.tex.xc[0], g.tex.yc[0]); glVertex2i(0, g.yres);
-		glTexCoord2f(g.tex.xc[1], g.tex.yc[0]); glVertex2i(g.xres, g.yres);
+		glTexCoord2f(g.tex.xc[0], g.tex.yc[0]); glVertex2i(0, g.yres * heightScale);
+		glTexCoord2f(g.tex.xc[1], g.tex.yc[0]); glVertex2i(g.xres * widthScale, g.yres * heightScale);
 		glTexCoord2f(g.tex.xc[1], g.tex.yc[1]); glVertex2i(g.xres, 0);
 	glEnd();
+
 	//Transparent platform works now thanks to gordans explanation. 
 	glBindTexture(GL_TEXTURE_2D, g.tex.platformTexture);
 	glEnable(GL_ALPHA_TEST);
 	glAlphaFunc(GL_GREATER, 0.0f);
-	glColor4ub(255,255,255,255);
-	
-	//glEnable(GL_BLEND);
-    //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glColor4ub(255,255,255,255);	
     platform.render();
+
+	glBindTexture(GL_TEXTURE_2D, g.tex.coinTexture);
+	glEnable(GL_ALPHA_TEST);
+	glAlphaFunc(GL_GREATER, 0.0f);
+	glColor4ub(255,255,255,255);
+    coin.renderCoins();
+
+	glBindTexture(GL_TEXTURE_2D, player.getTexture());
+	glEnable(GL_ALPHA_TEST);
+	glAlphaFunc(GL_GREATER, 0.0f);
+	glColor4ub(255,255,255,255);
+    player.render();
 }
