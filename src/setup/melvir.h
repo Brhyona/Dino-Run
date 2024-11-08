@@ -22,16 +22,21 @@ enum PlayerState {
 class Player {
 private:
     GLuint textures[NUM_STATES];
+    //Hitbox hitbox;
     PlayerState currentState;
     float x, y, width, height, frameDuration;
     int frameIndex = 0;
 
 public:
     Player(Image* img[NUM_STATES], float x, float y, int w, int h);
-    void render();
-    void updateState(PlayerState newState);
-    void handleInput(int key);
     GLuint getTexture();
+    void loadTextures(Image* img[NUM_STATES]);    
+    void updateState(PlayerState newState);
+    void updateHitbox();
+    void updateAnimationTimers();
+    void handleInput(int key);
+    void handleFalling();
+    void render();
     ~Player();
 };
 

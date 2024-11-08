@@ -42,6 +42,13 @@ public:
 	GLuint platformTexture;
 	Image *coinImage;
 	GLuint coinTexture;
+	// Menu
+	Image *MenuImage;
+    GLuint MenuTexture;
+	Image *TitleImage;
+    GLuint TitleTexture;
+	Image *playbuttonImage;
+	GLuint playbuttonTexture;
 //Player
 	Image *playerAvoidImage;
 	GLuint playerAvoidTexture;
@@ -68,6 +75,7 @@ public:
 
 	float xc[2];
 	float yc[2];
+	float xc2[2];
 };
 
 class Global {
@@ -115,6 +123,13 @@ public:
 		timers.recordTime(&ScanTime);
 		tex.playerScanImage=nullptr;
 	}
+	struct {
+float x;
+float y;
+float width;
+float height;
+
+}playButton; 
 
 };
 
