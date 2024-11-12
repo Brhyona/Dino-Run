@@ -378,7 +378,8 @@ void init_opengl(void)
 	unsigned char *buttonData = g.tex.playbuttonImage->buildAlphaData(&img[13]);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
                         GL_RGBA, GL_UNSIGNED_BYTE, buttonData);
-     
+    free(buttonData);
+
 	 //title
 	 g.tex.TitleImage = &img[14];
     glGenTextures(1, &g.tex.TitleTexture);
@@ -390,7 +391,8 @@ void init_opengl(void)
 	unsigned char * titleData = g.tex.TitleImage->buildAlphaData(&img[14]);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
                         GL_RGBA, GL_UNSIGNED_BYTE, titleData);
-     
+    free(titleData);
+
     //menu background 
 	g.tex.MenuImage = &img[15];
 	glGenTextures(1, &g.tex.MenuTexture);
@@ -401,7 +403,6 @@ void init_opengl(void)
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
 	glTexImage2D(GL_TEXTURE_2D, 0, 3, w, h, 0,
 							GL_RGB, GL_UNSIGNED_BYTE, g.tex.MenuImage->data);
-	
 	
 }
 
@@ -526,6 +527,7 @@ void render()
 	glColor4ub(255,255,255,255);
     player.render();
     glPopMatrix();
+	
 	if (!start) {
     render_menu();
 	}

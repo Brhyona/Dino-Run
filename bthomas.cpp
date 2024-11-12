@@ -11,7 +11,7 @@ float button_height = g.yres * 0.15;
 void render_menu() {  		 
          glEnable(GL_TEXTURE_2D);
           glClear(GL_COLOR_BUFFER_BIT);
-          glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+          //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
           glEnable(GL_ALPHA_TEST);
           glAlphaFunc(GL_GREATER, 0.0f);
           glColor3f(1.0, 1.0, 1.0);
