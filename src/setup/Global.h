@@ -49,6 +49,13 @@ public:
     GLuint TitleTexture;
 	Image *playbuttonImage;
 	GLuint playbuttonTexture;
+	// Pause Menu
+	Image *PTitleImage;
+	GLuint PTitleTexture;
+	Image *playbuttonMiniImage;
+	GLuint playbuttonMiniTexture;
+	Image *nextbuttonImage;
+	GLuint nextbuttonTexture;
 //Player
 	Image *playerAvoidImage;
 	GLuint playerAvoidTexture;

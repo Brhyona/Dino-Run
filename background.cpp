@@ -13,7 +13,7 @@
 #include "src/setup/jpompa.h"
 #include "src/setup/melvir.h"
 
-Image img[16]= {
+Image img[13]= {
 	"src/assets/textures/menu/background.png",
 	"src/assets/textures/ground/platform.png",
 	"src/assets/textures/ground/coin.png",
@@ -27,9 +27,14 @@ Image img[16]= {
 	"src/assets/textures/player/kick.png",
 	"src/assets/textures/player/move.png",
 	"src/assets/textures/player/scan.png",
+};
+Image Mimg[6] {
+	"src/assets/textures/menu/Pausedmenu.png",
+	"src/assets/textures/menu/playbuttonMini.png",
 	"src/assets/textures/menu/hover.png",
 	"src/assets/textures/menu/title.png",
-	"src/assets/textures/menu/shadow.png"
+	"src/assets/textures/menu/shadow.png",
+	"src/assets/textures/menu/nextbutton.png"
 };
 
 Image* playerImages[NUM_STATES] = {
@@ -53,7 +58,10 @@ Player player(playerImages, 320.0f, 100.0f, 64.0f, 64.0f, 100);
 
 float scrollSpeed = 0.0001;
 bool start = false;
+bool info = true;
 extern void render_menu();
+extern void render_Pmenu();
+extern void render_controlInfo();
 
 class X11_wrapper {
 private:
@@ -368,33 +376,33 @@ void init_opengl(void)
 	player.loadTextures(playerImages);
 	
 	//play button
-	g.tex.playbuttonImage = &img[13];
+	g.tex.playbuttonImage = &Mimg[2];
     glGenTextures(1, &g.tex.playbuttonTexture);
      w = g.tex.playbuttonImage->width;
      h = g.tex.playbuttonImage->height;
 	glBindTexture(GL_TEXTURE_2D, g.tex.playbuttonTexture);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-	unsigned char *buttonData = g.tex.playbuttonImage->buildAlphaData(&img[13]);
+	unsigned char *buttonData = g.tex.playbuttonImage->buildAlphaData(&Mimg[2]);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
                         GL_RGBA, GL_UNSIGNED_BYTE, buttonData);
     free(buttonData);
 
 	 //title
-	 g.tex.TitleImage = &img[14];
+	 g.tex.TitleImage = &Mimg[3];
     glGenTextures(1, &g.tex.TitleTexture);
      w = g.tex.TitleImage->width;
      h = g.tex.TitleImage->height;
 	glBindTexture(GL_TEXTURE_2D, g.tex.TitleTexture);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-	unsigned char * titleData = g.tex.TitleImage->buildAlphaData(&img[14]);
+	unsigned char * titleData = g.tex.TitleImage->buildAlphaData(&Mimg[3]);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
                         GL_RGBA, GL_UNSIGNED_BYTE, titleData);
     free(titleData);
 
     //menu background 
-	g.tex.MenuImage = &img[15];
+	g.tex.MenuImage = &Mimg[4];
 	glGenTextures(1, &g.tex.MenuTexture);
 	 w = g.tex.MenuImage->width;
 	 h = g.tex.MenuImage->height;
@@ -404,6 +412,41 @@ void init_opengl(void)
 	glTexImage2D(GL_TEXTURE_2D, 0, 3, w, h, 0,
 							GL_RGB, GL_UNSIGNED_BYTE, g.tex.MenuImage->data);
 	
+	g.tex.PTitleImage = &Mimg[0];
+    glGenTextures(1, &g.tex.PTitleTexture);
+     w = g.tex.PTitleImage->width;
+     h = g.tex.PTitleImage->height;
+	glBindTexture(GL_TEXTURE_2D, g.tex.PTitleTexture);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+	unsigned char * PtitleData = g.tex.PTitleImage->buildAlphaData(&Mimg[0]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
+                        GL_RGBA, GL_UNSIGNED_BYTE, PtitleData);
+    free(PtitleData);
+
+	g.tex.playbuttonMiniImage = &Mimg[1];
+    glGenTextures(1, &g.tex.playbuttonMiniTexture);
+     w = g.tex.playbuttonMiniImage->width;
+     h = g.tex.playbuttonMiniImage->height;
+	glBindTexture(GL_TEXTURE_2D, g.tex.playbuttonMiniTexture);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+	unsigned char *MinibuttonData = g.tex.playbuttonMiniImage->buildAlphaData(&Mimg[1]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
+                        GL_RGBA, GL_UNSIGNED_BYTE, MinibuttonData);
+    free(MinibuttonData);
+
+	g.tex.nextbuttonImage = &Mimg[5];
+    glGenTextures(1, &g.tex.nextbuttonTexture);
+     w = g.tex.nextbuttonImage->width;
+     h = g.tex.nextbuttonImage->height;
+	glBindTexture(GL_TEXTURE_2D, g.tex.nextbuttonTexture);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+	unsigned char *nextbuttonData = g.tex.nextbuttonImage->buildAlphaData(&Mimg[5]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
+                        GL_RGBA, GL_UNSIGNED_BYTE, nextbuttonData);
+    free(nextbuttonData);
 }
 
 void check_mouse(XEvent *e)
@@ -432,6 +475,38 @@ void check_mouse(XEvent *e)
 			mousey <= buttonTop) {
 				start = true;
 			}
+			if (e->type == ButtonPress) {
+		if (e->xbutton.button==1 && g.paused) {
+			//Left button is down
+			mousex = e->xbutton.x;
+			mousey = g.yres - e->xbutton.y;
+            int minibuttonLeft =   g.xres/2 - (g.xres * 0.05);
+			int minibuttonRight =  g.xres/2 + (g.xres * 0.05);
+			int minibuttonBottom = g.yres/4 - (g.yres * 0.1);
+			int minibuttonTop =    g.yres/4 + (g.yres * 0.1);
+            if (mousex >=minibuttonLeft &&
+			mousex <= minibuttonRight &&
+			mousey >= minibuttonBottom &&
+			mousey <= minibuttonTop) {
+				g.paused = !g.paused;
+			}
+		}
+		if (e->xbutton.button==1 && (!info || g.paused)) {
+			//Left button is down
+			mousex = e->xbutton.x;
+			mousey = g.yres - e->xbutton.y;
+            int minibuttonLeft =   g.xres/4 - (g.xres * 0.05);
+			int minibuttonRight =  g.xres/4 + (g.xres * 0.05);
+			int minibuttonBottom = g.yres/4 - (g.yres * 0.1);
+			int minibuttonTop =    g.yres/4 + (g.yres * 0.1);
+            if (mousex >=minibuttonLeft &&
+			mousex <= minibuttonRight &&
+			mousey >= minibuttonBottom &&
+			mousey <= minibuttonTop) {
+				info = !info;
+			}
+		}
+	}
 		}
 	}
 	if (savex != e->xbutton.x || savey != e->xbutton.y) {
@@ -453,6 +528,9 @@ int check_keys(XEvent *e)
 		}
 		if (key == XK_Escape) {
 			return 1;
+		}
+		if (key == XK_i) {
+           info = !info;
 		}
 		
 	}
@@ -532,5 +610,12 @@ void render()
 	if (!start) {
     render_menu();
 	}
-
+	if (g.paused) {
+    render_Pmenu();
+	}
+	if (!info) {
+	render_controlInfo();
+	}
 }
+
+

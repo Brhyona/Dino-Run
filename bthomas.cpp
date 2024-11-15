@@ -8,6 +8,7 @@
 float button_width = g.xres * 0.1;
 float button_height = g.yres * 0.15;
 
+
 void render_menu() {  		 
          glEnable(GL_TEXTURE_2D);
           glClear(GL_COLOR_BUFFER_BIT);
@@ -44,3 +45,74 @@ void render_menu() {
     
 }
 extern void render_menu();
+
+void render_Pmenu() {
+    glEnable(GL_TEXTURE_2D);
+    glClear(GL_COLOR_BUFFER_BIT);
+    glEnable(GL_ALPHA_TEST);
+    glAlphaFunc(GL_GREATER, 0.0f);
+    glColor3f(1.0, 1.0, 1.0);
+    glBindTexture(GL_TEXTURE_2D, g.tex.MenuTexture);
+    glBegin(GL_QUADS);
+    glTexCoord2f(g.tex.xc2[0], g.tex.yc[1]); glVertex2i(0, 0);
+    glTexCoord2f(g.tex.xc2[0], g.tex.yc[0]); glVertex2i(0, g.yres);
+    glTexCoord2f(g.tex.xc2[1], g.tex.yc[0]); glVertex2i(g.xres, g.yres);
+    glTexCoord2f(g.tex.xc2[1], g.tex.yc[1]); glVertex2i(g.xres, 0);
+	glEnd();
+    
+        float title_width = g.xres * 0.25;
+        float title_height = g.yres * 0.2;
+    glBindTexture(GL_TEXTURE_2D, g.tex.PTitleTexture);
+    glBegin(GL_QUADS);
+    glTexCoord2f(g.tex.xc2[0], g.tex.yc[1]); glVertex2i(g.xres/2 - title_width, g.yres/1.5 - title_height);
+    glTexCoord2f(g.tex.xc2[0], g.tex.yc[0]); glVertex2i(g.xres/2 - title_width, g.yres/1.5 + title_height);
+    glTexCoord2f(g.tex.xc2[1], g.tex.yc[0]); glVertex2i(g.xres/2 + title_width, g.yres/1.5 + title_height);
+    glTexCoord2f(g.tex.xc2[1], g.tex.yc[1]); glVertex2i(g.xres/2 + title_width, g.yres/1.5 - title_height); 
+	glEnd();
+          float button_width = g.xres * 0.05;
+          float button_height = g.yres * 0.1;
+         glBindTexture(GL_TEXTURE_2D, g.tex.playbuttonMiniTexture);
+        glBegin(GL_QUADS);
+        glTexCoord2f(g.tex.xc2[0], g.tex.yc[1]); glVertex2i(g.xres/2 - button_width, g.yres/4 - button_height);
+        glTexCoord2f(g.tex.xc2[0], g.tex.yc[0]); glVertex2i(g.xres/2 - button_width, g.yres/4 + button_height);
+        glTexCoord2f(g.tex.xc2[1], g.tex.yc[0]); glVertex2i(g.xres/2 + button_width, g.yres/4 + button_height);
+        glTexCoord2f(g.tex.xc2[1], g.tex.yc[1]); glVertex2i(g.xres/2 + button_width, g.yres/4 - button_height); 
+	 glEnd();
+      float Nbutton_width = g.xres * 0.05;
+    float Nbutton_height = g.yres * 0.1;
+    glBindTexture(GL_TEXTURE_2D, g.tex.nextbuttonTexture);
+    glBegin(GL_QUADS);
+    glTexCoord2f(g.tex.xc2[0], g.tex.yc[1]); glVertex2i(g.xres/4 - Nbutton_width, g.yres/4 - Nbutton_height);
+    glTexCoord2f(g.tex.xc2[0], g.tex.yc[0]); glVertex2i(g.xres/4 - Nbutton_width, g.yres/4 + Nbutton_height);
+    glTexCoord2f(g.tex.xc2[1], g.tex.yc[0]); glVertex2i(g.xres/4 + Nbutton_width, g.yres/4 + Nbutton_height);
+    glTexCoord2f(g.tex.xc2[1], g.tex.yc[1]); glVertex2i(g.xres/4 + Nbutton_width, g.yres/4 - Nbutton_height); 
+	glEnd();
+}
+
+extern void render_Pmenu();
+
+void render_controlInfo(){
+ glEnable(GL_TEXTURE_2D);
+    glClear(GL_COLOR_BUFFER_BIT);
+    glEnable(GL_ALPHA_TEST);
+    glAlphaFunc(GL_GREATER, 0.0f);
+    glColor3f(1.0, 1.0, 1.0);
+    glBindTexture(GL_TEXTURE_2D, g.tex.MenuTexture);
+    glBegin(GL_QUADS);
+    glTexCoord2f(g.tex.xc2[0], g.tex.yc[1]); glVertex2i(0, 0);
+    glTexCoord2f(g.tex.xc2[0], g.tex.yc[0]); glVertex2i(0, g.yres);
+    glTexCoord2f(g.tex.xc2[1], g.tex.yc[0]); glVertex2i(g.xres, g.yres);
+    glTexCoord2f(g.tex.xc2[1], g.tex.yc[1]); glVertex2i(g.xres, 0);
+	glEnd();
+
+    float Nbutton_width = g.xres * 0.05;
+    float Nbutton_height = g.yres * 0.1;
+    glBindTexture(GL_TEXTURE_2D, g.tex.nextbuttonTexture);
+    glBegin(GL_QUADS);
+    glTexCoord2f(g.tex.xc2[0], g.tex.yc[1]); glVertex2i(g.xres/4 - Nbutton_width, g.yres/4 - Nbutton_height);
+    glTexCoord2f(g.tex.xc2[0], g.tex.yc[0]); glVertex2i(g.xres/4 - Nbutton_width, g.yres/4 + Nbutton_height);
+    glTexCoord2f(g.tex.xc2[1], g.tex.yc[0]); glVertex2i(g.xres/4 + Nbutton_width, g.yres/4 + Nbutton_height);
+    glTexCoord2f(g.tex.xc2[1], g.tex.yc[1]); glVertex2i(g.xres/4 + Nbutton_width, g.yres/4 - Nbutton_height); 
+	glEnd();
+}
+extern void render_controlInfo();
