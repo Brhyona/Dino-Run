@@ -56,6 +56,15 @@ public:
 	GLuint playbuttonMiniTexture;
 	Image *nextbuttonImage;
 	GLuint nextbuttonTexture;
+	//GameOverScreen
+	Image *GameOverImage;
+	GLuint GameOverTexture;
+	Image *GameOverTitleImage;
+	GLuint GameOverTitleTexture;
+	Image *restartButtonImage;
+	GLuint restartButtonTexture;
+	Image *quitButtonImage;
+	GLuint quitButtonTexture;
 //Player
 	Image *playerAvoidImage;
 	GLuint playerAvoidTexture;
