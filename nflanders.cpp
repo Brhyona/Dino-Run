@@ -1,63 +1,87 @@
+#include <GL/glx.h>
 #include <iostream>
-#include <cstdlib>
-#include <string>
-#include <math.h>
-#include <ctime>
+#include "src/setup/Global.h"
+#include "src/setup/fonts.h"
 
-using namespace std;
+void renderGameOverScreen() {
+    glEnable(GL_TEXTURE_2D);
+    glClear(GL_COLOR_BUFFER_BIT);
+    glEnable(GL_ALPHA_TEST);
+    glAlphaFunc(GL_GREATER, 0.0f);
+    glColor3f(1.0, 1.0, 1.0);
+    
+    // Background 
+    glBindTexture(GL_TEXTURE_2D, g.tex.GameOverTexture);
+    glBegin(GL_QUADS);
+    glTexCoord2f(g.tex.xc2[0], g.tex.yc[1]); glVertex2i(0, 0);
+    glTexCoord2f(g.tex.xc2[0], g.tex.yc[0]); glVertex2i(0, g.yres);
+    glTexCoord2f(g.tex.xc2[1], g.tex.yc[0]); glVertex2i(g.xres, g.yres);
+    glTexCoord2f(g.tex.xc2[1], g.tex.yc[1]); glVertex2i(g.xres, 0);
+    glEnd();
 
-bool gameLogic() {
-    return false;
+    // Game Over Title
+    float title_width = g.xres * 0.25;
+    float title_height = g.yres * 0.2;
+    glBindTexture(GL_TEXTURE_2D, g.tex.GameOverTitleTexture);
+    glBegin(GL_QUADS);
+    glTexCoord2f(g.tex.xc2[0], g.tex.yc[1]); glVertex2i(g.xres/2 - title_width, g.yres/1.5 - title_height);
+    glTexCoord2f(g.tex.xc2[0], g.tex.yc[0]); glVertex2i(g.xres/2 - title_width, g.yres/1.5 + title_height);
+    glTexCoord2f(g.tex.xc2[1], g.tex.yc[0]); glVertex2i(g.xres/2 + title_width, g.yres/1.5 + title_height);
+    glTexCoord2f(g.tex.xc2[1], g.tex.yc[1]); glVertex2i(g.xres/2 + title_width, g.yres/1.5 - title_height); 
+    glEnd();
+
+    // Restart Button
+    float button_width = g.xres * 0.1;
+    float button_height = g.yres * 0.15;
+    glBindTexture(GL_TEXTURE_2D, g.tex.restartButtonTexture);
+    glBegin(GL_QUADS);
+    glTexCoord2f(g.tex.xc2[0], g.tex.yc[1]); glVertex2i(g.xres/2 - button_width, g.yres/4 - button_height);
+    glTexCoord2f(g.tex.xc2[0], g.tex.yc[0]); glVertex2i(g.xres/2 - button_width, g.yres/4 + button_height);
+    glTexCoord2f(g.tex.xc2[1], g.tex.yc[0]); glVertex2i(g.xres/2 + button_width, g.yres/4 + button_height);
+    glTexCoord2f(g.tex.xc2[1], g.tex.yc[1]); glVertex2i(g.xres/2 + button_width, g.yres/4 - button_height); 
+    glEnd();
+
+    // Quit Button
+    glBindTexture(GL_TEXTURE_2D, g.tex.quitButtonTexture);
+    glBegin(GL_QUADS);
+    glTexCoord2f(g.tex.xc2[0], g.tex.yc[1]); glVertex2i(g.xres/2 - button_width, g.yres/4 - 2 * button_height);
+    glTexCoord2f(g.tex.xc2[0], g.tex.yc[0]); glVertex2i(g.xres/2 - button_width, g.yres/4 - button_height);
+    glTexCoord2f(g.tex.xc2[1], g.tex.yc[0]); glVertex2i(g.xres/2 + button_width, g.yres/4 - button_height);
+    glTexCoord2f(g.tex.xc2[1], g.tex.yc[1]); glVertex2i(g.xres/2 + button_width, g.yres/4 - 2 * button_height); 
+    glEnd();
 }
 
-// Function to display the game over screen
-void displayGameOver() {
-    #ifdef _WIN32
-        system("cls");
-    #else
-        system("clear");
-    #endif
-
-    // Shows the positive message to the user
-    std::string messages[] = {
-        "Better luck next time!"
-    };
-
-    // Ask user if they want to retry
-    std::cout << "***** GAME OVER *****\n";
-    std::cout << " Would you like to retry? (y/n): ";
+//Input for game over screen, restart/quit
+void handleGameOverInput(unsigned char key, int x, int y) {
+    if (key == 'r' || key == 'R') {
+        g.coin = 0;  // GOING TO CHANGE
+        g.dead = 0; 
+        g.paused = 0;
+    } else if (key == 'q' || key == 'Q') {
+        exit(0); 
+    }
 }
-// Retrying the game
-bool retryGame(){
-    char choice;
-    std::cin >> choice;
 
-    if (choice == 'y' || choice == 'Y') {
-        return true;
+void gameLoop() {
+    if (g.dead) {
+        renderGameOverScreen(); 
+        glClear(GL_COLOR_BUFFER_BIT);
+    }
+}
+
+void handleKeyPress(unsigned char key, int x, int y) {
+    if (g.dead) {
+        handleGameOverInput(key, x, y);
+    } else if (g.paused) {
+        if (key == 'p' || key == 'P') {
+            g.paused = 0;
+            return;
+        }
     } else {
-        return false;
+        switch (key) {
+            case 'q':
+                exit(0);
+                break;
+        }
     }
-}
-
-
-void displayMessage() {
-    bool playAgain = true;
-
-    while (playAgain) {
-     //   bool gameWon = gameLogic();
-
-        // Need to have game logic
-
-        // Game over
-        displayGameOver();
-
-        // Depending on the user, they can retry the game
-        playAgain = retryGame();
-    }
-
-    std::cout << "Thanks for playing Dino-Run!\n";
-}
-
-// This will display the game over screen and start the game over loop
-void startGameOver() {
 }
