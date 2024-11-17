@@ -6,8 +6,12 @@
 #include "imageLoader.h"
 
 typedef double Flt;
-typedef double Vec[3];
+typedef float Vec[3];
 typedef Flt	Matrix[4][4];
+
+struct Hitbox{
+    float x, y, width, height;
+};
 
 class Timers {
 public:
@@ -42,21 +46,21 @@ public:
 	GLuint platformTexture;
 	Image *coinImage;
 	GLuint coinTexture;
-	// Menu
+// Menu
 	Image *MenuImage;
     GLuint MenuTexture;
 	Image *TitleImage;
     GLuint TitleTexture;
 	Image *playbuttonImage;
 	GLuint playbuttonTexture;
-	// Pause Menu
+// Pause Menu
 	Image *PTitleImage;
 	GLuint PTitleTexture;
 	Image *playbuttonMiniImage;
 	GLuint playbuttonMiniTexture;
 	Image *nextbuttonImage;
 	GLuint nextbuttonTexture;
-	//GameOverScreen
+//GameOverScreen
 	Image *GameOverImage;
 	GLuint GameOverTexture;
 	Image *GameOverTitleImage;
@@ -113,7 +117,7 @@ public:
 	double delay;
 
 	Global() {
-		xres=550, yres=400, paused=0, coin=0, coinFrame=0, delay = 0.3;
+		xres=550, yres=400, paused=0, coin=0, coinFrame=0, delay = 0.15;
 		avoiding=0, biting=0, dashing=0, dead=0, hurting=0, idel=0, jumping=0, kicking=0, moving=0, scanning=0, playerFrame=0;
 
 		timers.recordTime(&coinTime);

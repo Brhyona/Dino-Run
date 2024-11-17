@@ -3,14 +3,13 @@
 
 #include "imageLoader.h"
 #include "Global.h"
+#include "melvir.h"
 #include <GL/glx.h>
 #include <cstdlib>
 #include <ctime>
 #include <new>
 
-struct Hitbox{
-    float x, y, width, height;
-};
+class Player;
 
 struct PlatformNode {
     GLuint texture;
@@ -30,7 +29,6 @@ struct CoinNode {
     CoinNode(Image* img, float xpos, float ypos, float w, float h);
 };
 
-
 class Platform {
 private:
     PlatformNode* platformHead;
@@ -46,6 +44,7 @@ private:
 
 public:
     Platform(Image* img, float xpos, float ypos, float w, float h);
+    PlatformNode* getPlatformHead() const { return platformHead; }
     void setSpawnInterval(float interval);
     float getLastPlatformX() const {return lastPlatformX;}
     float getLastPlatformY() const {return lastPlatformY;}
@@ -72,9 +71,12 @@ private:
 
 public:
     Coin(Image* img, float xpos, float ypos, float w, float h, Platform *platformPos);
+    CoinNode* getCoins() const;
     void setSpawnInterval(float interval);
     void addCoin(Image* img, float xpos, float ypos, float w, float h);
     void updateCoins(int windowWidth, int windowLength, float deltaTime);
+    void checkCoinCollision(Player &player);
+    void removeCoin(CoinNode * coin);
     void renderCoins();
     ~Coin();
 };

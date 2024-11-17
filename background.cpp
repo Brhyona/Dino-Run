@@ -12,6 +12,7 @@
 #include "src/setup/Global.h"
 #include "src/setup/jpompa.h"
 #include "src/setup/melvir.h"
+#include "src/setup/health.h"
 
 Image img[13]= {
 	"src/assets/textures/menu/background.png",
@@ -54,7 +55,7 @@ Global g;
 
 Platform platform(&img[1], 320.0f, 100.0f, 641.0f, 231.0f);
 Coin coin(&img[2], 100.0f, 200.0f, 32.0f, 32.0f, &platform); 
-Player player(playerImages, 320.0f, 100.0f, 64.0f, 64.0f, 100);
+Player player(playerImages, 320.0f, 100.0f, 64.0f, 64.0f);
 
 float scrollSpeed = 0.0001;
 bool start = false;
@@ -549,6 +550,8 @@ void physics()
 		g.tex.xc[1] += scrollSpeed;
 		platform.updatePlatforms(g.xres, g.yres, deltaTime);
 		coin.updateCoins(g.xres, g.yres, deltaTime);
+		player.updatePlayer(deltaTime);
+		player.handleFalling(platform);
 	}
 	
 }
@@ -604,7 +607,6 @@ void render()
 	glAlphaFunc(GL_GREATER, 0.0f);
 	glColor4ub(255,255,255,255);
     player.render();
-	player.healthMeter();
     glPopMatrix();
 	
 	if (!start) {
@@ -617,5 +619,3 @@ void render()
 	render_controlInfo();
 	}
 }
-
-
