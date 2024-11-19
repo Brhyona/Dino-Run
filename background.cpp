@@ -30,11 +30,11 @@ Image img[13]= {
 	"src/assets/textures/player/scan.png",
 };
 Image Mimg[6] {
-	"src/assets/textures/menu/Pausedmenu.png",
+	"src/assets/textures/menu/pausedmenu.png",
 	"src/assets/textures/menu/playbuttonMini.png",
-	"src/assets/textures/menu/hover.png",
-	"src/assets/textures/menu/title.png",
-	"src/assets/textures/menu/shadow.png",
+	"src/assets/textures/menu/Hover.png",
+	"src/assets/textures/menu/Title.png",
+	"src/assets/textures/menu/Shadow.png",
 	"src/assets/textures/menu/nextbutton.png"
 };
 
