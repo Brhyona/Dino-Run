@@ -53,14 +53,30 @@ public:
     GLuint TitleTexture;
 	Image *playbuttonImage;
 	GLuint playbuttonTexture;
-// Pause Menu
+
+	// Pause Menu
 	Image *PTitleImage;
 	GLuint PTitleTexture;
 	Image *playbuttonMiniImage;
 	GLuint playbuttonMiniTexture;
 	Image *nextbuttonImage;
 	GLuint nextbuttonTexture;
-//GameOverScreen
+	Image *info_backImage;
+	GLuint info_backTexture;
+	Image *esc_keyImage;
+	GLuint esc_keyTexture;
+	Image *arrow_keyImage;
+	GLuint arrow_keyTexture;
+	Image *space_barImage;
+	GLuint space_barTexture;
+	Image *p_keyImage;
+	GLuint p_keyTexture;
+	Image *i_keyImage;
+	GLuint i_keyTexture;
+	Image *control_MImage;
+	GLuint control_MTexture;
+
+	//End Menu 
 	Image *GameOverImage;
 	GLuint GameOverTexture;
 	Image *GameOverTitleImage;
@@ -69,6 +85,9 @@ public:
 	GLuint restartButtonTexture;
 	Image *quitButtonImage;
 	GLuint quitButtonTexture;
+
+
+
 //Player
 	Image *playerAvoidImage;
 	GLuint playerAvoidTexture;
@@ -90,6 +109,10 @@ public:
 	GLuint playerMoveTexture;
 	Image *playerScanImage;
 	GLuint playerScanTexture;
+
+	//enemies
+	Image *BatImage;
+	GLuint BatTexture;
 
 	Vec box[20];
 

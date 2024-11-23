@@ -368,6 +368,6 @@ void Player::handleFalling(const Platform& platforms) {
 }
 
 
-float Player::getX() const { return position[0]; }
-float Player::getY() const { return position[1]; }
+//float Player::getX() const { return position[0]; }
+//float Player::getY() const { return position[1]; }
 

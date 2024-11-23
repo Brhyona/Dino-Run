@@ -11,6 +11,7 @@
 
 class Platform;
 
+
 enum PlayerState {
     AVOID,
     BITE,
@@ -41,9 +42,12 @@ private:
 public:
     Player(Image* img[NUM_STATES], float x, float y, int w, int h);
     Hitbox getPlayerHitbox() const { return hitbox; }
+    float getX() const{ return x;}
+    float getY() const {return y;}
+    //Player(Image* img[NUM_STATES], float x, float y, int w, int h, int max_health);
     GLuint getTexture();
-    float getX() const;
-    float getY() const;
+    //float getX() const;
+    //float getY() const;
     void loadTextures(Image* img[NUM_STATES]);    
     void updateState(PlayerState newState);
     void updateHitbox();
