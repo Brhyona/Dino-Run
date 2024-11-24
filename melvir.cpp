@@ -8,9 +8,10 @@
 #include <iostream>
 #include <cmath>
 
-constexpr float MOVE_SPEED = 5.0f;
+constexpr float MOVE_SPEED = 6.0f;
+constexpr float JUMP_SPEED = 10.0f;
 constexpr float DASH_SPEED = 12.0f;
-constexpr float GRAVITY = 200.0f;
+constexpr float GRAVITY = 9.8f;
 constexpr float DASH_THRESHOLD = 0.30f;
 constexpr float PI = 3.14159265358979323846f;
 bool facingLeft = false;
@@ -130,61 +131,66 @@ void Player::updateAnimationTimers() {
 void Player::triggerDash(int key) {
     if (key == XK_Shift_L) {
         updateState(DASH);
-        x += DASH_SPEED; 
+        position[0] += DASH_SPEED; 
         facingLeft = true;
     } else if (key == XK_Right) {
         updateState(DASH);
-        x += DASH_SPEED;
+        position[0] += DASH_SPEED;
         facingLeft = false;
     }
 }
 
 void Player::handleInput(int key) {
-    static float keyHoldTime = 0.0f;
-    static int lastKey = 0; 
     
-    velocity[0] = 0.0f;
-    velocity[1] = 0.0f;
+    this->velocity[0] = 0.0f;
+    this->velocity[1] = 0.0f;
 
-    if (key == XK_Left || key == XK_Right) {
+    if (key == XK_Left) {
         g.moving = true;
-        if (lastKey == key) {
-            keyHoldTime += 0.1f; // Increment hold time
-        } else {
-            keyHoldTime = 0.0f;
-        } 
+        this->velocity[0] = -MOVE_SPEED; 
+    } else if (key == XK_Right) {
+        g.moving = true;
+        this->velocity[0] = MOVE_SPEED; 
+    } else if (key == XK_Up) {
+        if (this->velocity[1] == 0.0f) { 
+            g.jumping = true;
+            updateState(JUMP);
+            this->velocity[1] = JUMP_SPEED;
+            this->position[1] += this->velocity[1] * 0.016f;      // Add horizontal boost during jump
+            std::cout << "Player jumped: velocityY=" << this->velocity[1]
+                  << ", positionY=" << this->position[1] << std::endl;
+        }
     } else {
-        g.moving = false;
-        keyHoldTime = 0.0f;
+        this->velocity[0] = 0.0f; 
     }
 
     if(key == XK_Up){
         g.jumping = true;
-        if (velocity[1] == 0.0f) { // Only allow jumping if not already jumping/falling
+        if (this->velocity[1] == 0.0f) { 
             g.jumping = true;
             updateState(JUMP);
-            //velocity[1] = 20.0f - GRAVITY; // Initial upward velocity
-        }
+            this->velocity[1] = JUMP_SPEED;
+        } 
+    } else {
+        this->velocity[0] = 0.0f;
     } 
 
-    if (keyHoldTime > DASH_THRESHOLD) {
-        triggerDash(key);
-    }
+    triggerDash(key);
 
     switch (key) {
         case XK_Left: 
             updateState(MOVE);
-            x -= MOVE_SPEED;
+            this->position[0] -= MOVE_SPEED;
             facingLeft = true;
             break;
         case XK_Right: 
             updateState(MOVE);
-            x += MOVE_SPEED;
+            this->position[0] += MOVE_SPEED;
             facingLeft = false;
             break;
         case XK_Up:
             updateState(JUMP);
-            y += MOVE_SPEED;
+            //y += MOVE_SPEED;
             break;
         case XK_Down: 
             break;
@@ -192,8 +198,20 @@ void Player::handleInput(int key) {
 }
 
 void Player::updatePlayer(float deltaTime) {
-    position[0] += velocity[0] * deltaTime;
-    position[1] += velocity[1] * deltaTime;
+    
+    this->position[0] += this->velocity[0] * deltaTime;
+    this->position[1] += this->velocity[1] * deltaTime;
+
+    // Update hitbox position
+    this->hitbox.x = this->position[0] - this->width / 2;
+    this->hitbox.y = this->position[1] - this->height / 2;
+
+    // Debugging
+    std::cout << "Updated player: x=" << this->position[0]
+              << ", y=" << this->position[1]
+              << ", velocityX=" << this->velocity[0]
+              << ", velocityY=" << this->velocity[1] << std::endl;
+    
     updateHitbox();
 }
 
@@ -243,7 +261,7 @@ void Player::render() {
 
     glBindTexture(GL_TEXTURE_2D, getTexture());
     glPushMatrix();
-    glTranslatef(x, y, 0); 
+    glTranslatef(this->position[0], this->position[1], 0); 
         
     glBegin(GL_QUADS);
         glTexCoord2f(tx1, 1.0f); glVertex2f(-width / 2, -height / 2);
@@ -293,11 +311,8 @@ void drawHeart(float x, float y, float size, int filledSegments)
     }
 }
 
-void Player::healthMeter() {
-    int currentHealth = playerHealth.GetCurrentHealth();
-    int fullHearts = playerHealth.GetCurrentHealth() / 10;
-    int remainingHealth = currentHealth % 10;
-
+void Player::healthMeter() 
+{   
     // Health GUI
     std::string healthText = "Health: " + std::to_string(playerHealth.GetCurrentHealth()) + "/" + std::to_string(playerHealth.GetMaxHealth());
     Rect r;
@@ -313,8 +328,8 @@ void Player::healthMeter() {
     float startX = 20; // Start position from the left edge
     float startY = g.yres - 30; // Start position from the top edge
 
-    //int fullHearts = playerHealth.GetCurrentHealth() / 10;
-    //float remainingHealth = playerHealth.GetCurrentHealth() % 10;
+    int fullHearts = playerHealth.GetCurrentHealth() / 10;
+    float remainingHealth = playerHealth.GetCurrentHealth() % 10;
 
     for (int i = 0; i < maxHearts; i++) {
         float x = startX + i * (heartSize + gap);
@@ -349,6 +364,8 @@ void Player::handleFalling(const Platform& platforms) {
             // Align the player with the platform
             this->position[1] = platformHitbox.y + platformHitbox.height;
             this->velocity[1] = 0.0f; // Stop falling
+            g.jumping = false;
+            //std::cout << "Player landed on platform at y=" << this->position[1] << std::endl;
             break;
         }
         temp = temp->next;
@@ -367,7 +384,6 @@ void Player::handleFalling(const Platform& platforms) {
     updateHitbox(); // Ensure the hitbox reflects the updated position
 }
 
-
-//float Player::getX() const { return position[0]; }
-//float Player::getY() const { return position[1]; }
+float Player::getX() const { return position[0]; }
+float Player::getY() const { return position[1]; }
 

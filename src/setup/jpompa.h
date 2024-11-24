@@ -63,6 +63,9 @@ private:
     float spawnTimer;
     float spawnInterval;
     Platform *platformPos;
+    int maxCoins;
+    int coinsCollected;
+
 
 
     CoinNode* createCoin(Image* img, float xpos, float ypos, float w, float h);
@@ -74,6 +77,7 @@ public:
     CoinNode* getCoins() const;
     void setSpawnInterval(float interval);
     void addCoin(Image* img, float xpos, float ypos, float w, float h);
+    void monitorCoins(Image* img, float xpos, float ypos, float w, float h);
     void updateCoins(int windowWidth, int windowLength, float deltaTime);
     void checkCoinCollision(Player &player);
     void removeCoin(CoinNode * coin);

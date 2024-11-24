@@ -698,6 +698,7 @@ void physics()
 		g.tex.xc[1] += scrollSpeed;
 		platform.updatePlatforms(g.xres, g.yres, deltaTime);
 		coin.updateCoins(g.xres, g.yres, deltaTime);
+		coin.checkCoinCollision(player);
 		player.handleFalling(platform);
 	}
 	
@@ -755,7 +756,6 @@ void render()
 	//glAlphaFunc(GL_GREATER, 0.0f);
 	glColor4ub(255,255,255,255);
     player.render();
-	//player.healthMeter();
 	bat.render();
     glPopMatrix();
 	if (!start) {

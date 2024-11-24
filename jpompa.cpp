@@ -11,6 +11,7 @@
 #include "src/setup/jpompa.h"
 #include "src/setup/melvir.h"
 #include <GL/glx.h>
+#include <iostream>
 #include <cstdlib>
 #include <ctime>
 #include <new>
@@ -24,14 +25,12 @@ PlatformNode::PlatformNode(Image* img, float xpos, float ypos, float w, float h)
     float plankYOffset = -h / 2 + plankHeight / 2;  // Align hitbox with plank
 
     hitbox = {xpos - width / 2, ypos + plankYOffset, width, plankHeight};
-
-    //hitbox = {xpos - width / 2, ypos - height / 2, width, height};
-    //hitbox = {w / 2, h / 2, w, h / 4};
-    
+ 
     if (!img->data) {
         printf("Failed to load image:");
         return;
     }
+    
     #ifdef DEBUG        
     printf("Image loaded: Width: %d, Height: %d\n", img->width, img->height);
     #endif
@@ -46,7 +45,7 @@ PlatformNode::PlatformNode(Image* img, float xpos, float ypos, float w, float h)
 
 Platform::Platform(Image* img, float xpos, float ypos, float w, float h) 
     : platformHead(nullptr), lastPlatformX(xpos), lastPlatformY(ypos), platformCounter(0), spawnTimer(0.0f), spawnInterval(1.0f) {
-    float initialSpacing = 550.0f;
+    float initialSpacing = 600.0f;
     for(int i = 0; i < 4; i++) {  
         addPlatform(img, xpos + i * initialSpacing, ypos, w, h);
 
@@ -122,13 +121,16 @@ void Platform::updatePlatforms(int windowWidth, int windowLength, float deltaTim
     float maxGapThreshold = windowWidth * 0.2f;
     
     while (temp) {
-        float plankHeight = 20.0f;
-        float plankWidth = temp->width;
+        
         temp->x -= 1.0f;
-        temp->hitbox.x = temp->x;
-        temp->hitbox.y = temp->y;
-        temp->hitbox.height = plankHeight;
+        
+        float plankHeight = temp->height * 0.1f;  // 10% of total height
+        float plankWidth = temp->width * 0.8f;   // 90% of total width
+
+        temp->hitbox.x = temp->x - plankWidth / 2;  // Center horizontally
+        temp->hitbox.y = temp->y - plankHeight / 2;  // Align vertically
         temp->hitbox.width = plankWidth;
+        temp->hitbox.height = plankHeight;
 
         if (temp->x + temp->width / 2 < 0 && spawnTimer >= spawnInterval) {
             spawnTimer = 0.0f;
@@ -165,22 +167,7 @@ void Platform::render() {
 
     PlatformNode * temp = platformHead;
     while (temp) {
-        #ifdef DEBUG
-        glPushMatrix();
-        glColor3f(1.0f, 0.0f, 0.0f); // Set hitbox color to red
-        glBegin(GL_LINE_LOOP);
-            glVertex2f(temp->hitbox.x, temp->hitbox.y); // Bottom-left
-            glVertex2f(temp->hitbox.x, temp->hitbox.y + temp->hitbox.height); // Top-left
-            glVertex2f(temp->hitbox.x + temp->hitbox.width, temp->hitbox.y + temp->hitbox.height); // Top-right
-            glVertex2f(temp->hitbox.x + temp->hitbox.width, temp->hitbox.y); // Bottom-right
-        glEnd();
-        glPopMatrix();
-
-        //printf("Hitbox - x: %f, y: %f, width: %f, height: %f\n", 
-        //       temp->hitbox.x, temp->hitbox.y, temp->hitbox.width, temp->hitbox.height);
-        #endif
-        //glColor3f(1.0f, 1.0f, 1.0f);
-        
+ 
         glPushMatrix();
         glTranslatef(temp->x, temp->y, 0);
         glBindTexture(GL_TEXTURE_2D, temp->texture);
@@ -192,6 +179,24 @@ void Platform::render() {
         glEnd();
         glPopMatrix();
 
+        #ifdef DEBUG
+        glDisable(GL_TEXTURE_2D);
+        glPushMatrix();
+        glColor3f(1.0f, 0.0f, 0.0f); // Set hitbox color to red
+        glBegin(GL_LINE_LOOP);
+            glVertex2f(temp->hitbox.x, temp->hitbox.y); // Bottom-left
+            glVertex2f(temp->hitbox.x, temp->hitbox.y + temp->hitbox.height); // Top-left
+            glVertex2f(temp->hitbox.x + temp->hitbox.width, temp->hitbox.y + temp->hitbox.height); // Top-right
+            glVertex2f(temp->hitbox.x + temp->hitbox.width, temp->hitbox.y); // Bottom-right
+        glEnd();
+        glPopMatrix();
+        glEnable(GL_TEXTURE_2D); 
+
+        //printf("Hitbox - x: %f, y: %f, width: %f, height: %f\n", 
+        //       temp->hitbox.x, temp->hitbox.y, temp->hitbox.width, temp->hitbox.height);
+        #endif
+        
+        glColor3f(1.0f, 1.0f, 1.0f);
         temp = temp -> next;
     }
     //glColor3f(1.0f, 1.0f, 1.0f);
@@ -220,9 +225,10 @@ CoinNode::CoinNode(Image* img, float xpos, float ypos, float w, float h)
 }
 
 Coin::Coin(Image* img, float xpos, float ypos, float w, float h, Platform *platformPos) 
-    : coinHead(nullptr), lastCoinX(xpos), lastCoinY(ypos), coinCounter(0), spawnTimer(0.0f), spawnInterval(2.0f), platformPos(platformPos) {
-    for(int i = 0; i < 10; i++) {
-        addCoin(img, xpos, ypos, w, h);
+    : coinHead(nullptr), lastCoinX(xpos), lastCoinY(ypos), coinCounter(0), spawnTimer(0.0f), spawnInterval(2.0f), platformPos(platformPos), maxCoins(20) {
+    for(int i = 0; i < maxCoins; i++) {
+        //addCoin(img, xpos, ypos, w, h);
+        monitorCoins(img, xpos, ypos, w, h);
     }
     srand(static_cast<unsigned int>(time(0)));
 }
@@ -235,7 +241,7 @@ CoinNode * Coin::createCoin(Image* img, float xpos, float ypos, float w, float h
     CoinNode * newCoin;
     try {
         newCoin = new CoinNode(img, xpos, ypos, w, h);
-        coinCounter++;
+        //coinCounter++;
         #ifdef DEBUG
         printf("CoinNode created at (%f, %f) with width %f and height %f\n", xpos, ypos, w, h);
         #endif
@@ -264,7 +270,8 @@ void Coin::addCoin(Image* img, float xpos, float ypos, float w, float h) {
     } else {
         newCoin->next = temp;
         coinHead = newCoin;
-    }
+    } 
+    coinCounter++;
 }
 
 void Coin::updateCoins(int windowWidth, int windowLength, float deltaTime) {
@@ -272,7 +279,7 @@ void Coin::updateCoins(int windowWidth, int windowLength, float deltaTime) {
     CoinNode * coinTemp = coinHead;
     
     float minCoinSpacing = windowWidth * 0.1f;  
-    float maxCoinSpacing = windowWidth * 0.12f;   
+    float maxCoinSpacing = windowWidth * 0.2f;   
     float verticalSpacing = windowLength * 0.1f;
 
     //Sprite sheet render using Gordons timers method.
@@ -286,12 +293,11 @@ void Coin::updateCoins(int windowWidth, int windowLength, float deltaTime) {
 		}
 		timers.recordTime(&g.coinTime);
 	}
-
-    coinTemp->hitbox.x = coinTemp->x;
-    coinTemp->hitbox.y = coinTemp->y;     
-    
+ 
     while (coinTemp) {
         coinTemp->x -= 1.0f;
+        coinTemp->hitbox.x = coinTemp->x;
+        coinTemp->hitbox.y = coinTemp->y;     
 
         if (coinTemp->x + coinTemp->width / 2 < 0 && spawnTimer >= spawnInterval) {
             spawnTimer = 2.0f;
@@ -307,17 +313,48 @@ void Coin::updateCoins(int windowWidth, int windowLength, float deltaTime) {
                 coinTemp->x = lastCoinX + randomSpacing;
                 coinTemp->y = lastCoinY + verticalOffset;
             }
-
+            /* 
             if (coinTemp->y < platformY) {
-                coinTemp->y = platformY + 10.0f;
+                coinTemp->y = platformY + 30.0f;
             }
-
+            
+            if (coinTemp->y > platformY) {
+                coinTemp->y = platformY + 30.0f;
+            }
+            */       
             lastCoinX = coinTemp->x;
             lastCoinY = coinTemp->y;
                 
         }
         coinTemp = coinTemp->next;   
     }
+
+    //std::cout << "Coins on screen: " << coinCounter << std::endl;
+   
+}
+
+void Coin::monitorCoins(Image* img, float xpos, float ypos, float w, float h) {
+    if (coinsCollected == coinCounter) {
+        maxCoins += 5; // Increase the max coin limit by 5
+        std::cout << "Increasing max coins to " << maxCoins << std::endl;
+    }    
+
+    while (coinCounter < maxCoins) {
+        float newCoinX = xpos + randomFloat(50.0f, 200.0f);
+        float newCoinY = ypos + randomFloat(-50.0f, 50.0f);
+
+        // Ensure new coins are within valid bounds
+        if (newCoinY < 50.0f) newCoinY = 50.0f;
+        if (newCoinY > 600.0f) newCoinY = 600.0f;
+
+        addCoin(img, newCoinX, newCoinY, w, h);
+
+        std::cout << "New coin created at (" << newCoinX << ", " << newCoinY << "). Total coins: " << coinCounter << std::endl;
+
+        lastCoinX = newCoinX; // Update last coin position
+        lastCoinY = newCoinY;
+    }
+
 }
 
 void Coin::renderCoins() {
@@ -389,7 +426,7 @@ void Coin::removeCoin(CoinNode* coin) {
         CoinNode* temp = prev->next;
         prev->next = temp->next;
         delete temp;
-        coinCounter--;
+                coinCounter--;
     }
 }
 
@@ -397,6 +434,8 @@ void Coin::checkCoinCollision(Player &player) {
     CoinNode *coinTemp = coinHead;
 
     while (coinTemp) {
+        CoinNode *nextCoin = coinTemp->next;
+
         const Hitbox &playerHitbox = player.getPlayerHitbox();
         const Hitbox &coinHitbox = coinTemp->hitbox;
 
@@ -406,12 +445,15 @@ void Coin::checkCoinCollision(Player &player) {
                            playerHitbox.y + playerHitbox.height > coinHitbox.y;
 
         if (isColliding) {
-            //std::cout << "Player collided with coin ("  << coinHitbox.x << ", " << coinHitbox.y << ")" << std::endl;
+            std::cout << "Player collided with coin (" << coinHitbox.x << ", " << coinHitbox.y << ")" << std::endl;
+            removeCoin(coinTemp);
+            coinsCollected++;
+            std::cout << "Coins collected:" << coinsCollected << std::endl;
+            std::cout << "Coins created: " << coinCounter << std::endl;
         }
 
-        coinTemp = coinTemp->next;
+        coinTemp = nextCoin; 
     }
-
 }
 
 void Coin::deallocateCoins(CoinNode * coinNode) {
@@ -423,3 +465,4 @@ void Coin::deallocateCoins(CoinNode * coinNode) {
     delete coinNode;
     coinCounter--;
 }
+
