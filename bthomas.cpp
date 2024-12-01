@@ -637,19 +637,8 @@ void Bat::render()
         glVertex2f(-width*3/ 2 , height*3/ 2);
     glEnd();
     glDisable(GL_TEXTURE_2D);
-    glColor4f(1.0f ,0.0f ,0.0f , 0.5f);
-    glBegin(GL_QUADS);
-        glVertex2f(hitbox.x , hitbox.y);
-        glVertex2f(hitbox.x + hitbox.width, hitbox.y);
-        glVertex2f(hitbox.x + hitbox.width, hitbox.y + hitbox.height);
-        glVertex2f(hitbox.x , hitbox.y + hitbox.height);
-    glEnd();
-    glPopMatrix();
-
     glDisable(GL_BLEND);
     glDisable(GL_ALPHA_TEST);
-    glDisable(GL_TEXTURE_2D);
- 
 }
 
 GLuint Bat::getTexture() const 
