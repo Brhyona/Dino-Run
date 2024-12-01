@@ -109,6 +109,8 @@ public:
 	GLuint playerMoveTexture;
 	Image *playerScanImage;
 	GLuint playerScanTexture;
+	Image *playerHatchImage;
+	GLuint playerHatchTexture;
 
 	//enemies
 	Image *BatImage;
@@ -138,6 +140,12 @@ public:
 	struct timespec MoveTime;
 	struct timespec ScanTime;
 	double delay;
+
+	float gracePeriod = 3.0f;
+	bool IsGracePeriod = true;
+	bool spawnAnimation = true;
+	int hatchFrame = 0;
+	struct timespec hatchTime;	
 
 	Global() {
 		xres=550, yres=400, paused=0, coin=0, coinFrame=0, delay = 0.15;

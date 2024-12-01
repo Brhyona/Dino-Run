@@ -23,6 +23,7 @@ enum PlayerState {
     KICK,
     MOVE,
     SCAN,
+    HATCH,
     NUM_STATES
 };
 
@@ -57,8 +58,17 @@ public:
     void handleInput(int key);
     void handleFalling(const Platform& platforms);
     void healthMeter();
+    void drawHeart(float x, float y, float size, int filledSegments);
     void render();
     ~Player();
+//
+    float getWidth() const {
+        return width;
+    }
+
+    float getHeight() const {
+        return height;
+    }
 };
 
 #endif // MELVIR_H

@@ -16,7 +16,7 @@
 #include "src/setup/bthomas.h"
 #include "src/setup/health.h"
 
-Image img[14]= {
+Image img[15]= {
 	"src/assets/textures/menu/background.png",
 	"src/assets/textures/ground/platform.png",
 	"src/assets/textures/ground/coin.png",
@@ -30,7 +30,8 @@ Image img[14]= {
 	"src/assets/textures/player/kick.png",
 	"src/assets/textures/player/move.png",
 	"src/assets/textures/player/scan.png",
-	"src/assets/textures/enemies/bat.png"
+	"src/assets/textures/enemies/bat.png",
+	"src/assets/textures/player/hatch.png"
 };
 
 Image Mimg[13] {
@@ -60,13 +61,14 @@ Image* playerImages[NUM_STATES] = {
 	&img[10],
 	&img[11],
 	&img[12],
+	&img[14],	
 };
 
 Global g;
 
 Platform platform(&img[1], 320.0f, 100.0f, 641.0f, 231.0f);
 Coin coin(&img[2], 100.0f, 200.0f, 32.0f, 32.0f, &platform); 
-Player player(playerImages, 320.0f, 100.0f, 64.0f, 64.0f);
+Player player(playerImages, 220.0f, 230.0f, 64.0f, 64.0f); // Player Position would be fixed here
 Bat bat(&img[13],320.0f,240.0f,32.0f,32.0f, player);
 
 float scrollSpeed = 0.0001;
@@ -389,6 +391,29 @@ void init_opengl(void)
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
 							GL_RGBA, GL_UNSIGNED_BYTE, playerScanData);
 	free(playerScanData);
+//
+	//Player Hatch	
+	g.tex.playerHatchImage = &img[14];
+	w = g.tex.playerHatchImage->width;
+	h = g.tex.playerHatchImage->height;
+	glGenTextures(1, &g.tex.playerHatchTexture); 
+	glBindTexture(GL_TEXTURE_2D, g.tex.playerHatchTexture);
+	/*
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+	*/
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	
+	unsigned char *playerHatchData = g.tex.playerHatchImage->buildAlphaData(&img[14]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
+							GL_RGBA, GL_UNSIGNED_BYTE, playerHatchData);
+	free(playerHatchData);	
+
+//
+
 
 	player.loadTextures(playerImages);
 	
@@ -692,6 +717,21 @@ void physics()
 	std::chrono::duration<float> elapsed = currentTime - lastTime;
 	float deltaTime = elapsed.count();
 	lastTime = currentTime;
+	// Grace Period Start
+	if (start && g.gracePeriod > 0.0f) {
+		g.gracePeriod -= deltaTime;
+		if (g.gracePeriod <= 0.0f) {
+			g.IsGracePeriod = false;
+			g.spawnAnimation = false; 
+		}
+		return;
+	}
+
+	if (g.spawnAnimation) {
+		return;
+	}
+
+	//	
 	if(!g.paused) 
 	{
 		g.tex.xc[0] += scrollSpeed;
@@ -758,9 +798,54 @@ void render()
     player.render();
 	bat.render();
     glPopMatrix();
+
 	if (!start) {
     render_menu();
 	}
+	//
+	if (start && g.spawnAnimation) {
+		//glEnable(GL_BLEND);
+		//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+		int totalFrames = 4;
+		float frameWidth = 1.0f / totalFrames;
+		float tx1 = g.hatchFrame * frameWidth;
+		float tx2 = tx1 + frameWidth;
+
+		glBindTexture(GL_TEXTURE_2D, g.tex.playerHatchTexture);
+		glPushMatrix();
+		glTranslatef(player.getX(), player.getY(), 0);
+		glBegin(GL_QUADS);
+			glTexCoord2f(tx1, 1.0f); glVertex2f(-player.getWidth() / 2, -player.getHeight() / 2);
+			glTexCoord2f(tx2, 1.0f); glVertex2f(player.getWidth() / 2, -player.getHeight() / 2);
+			glTexCoord2f(tx2, 0.0f); glVertex2f(player.getWidth() / 2, player.getHeight() / 2);
+			glTexCoord2f(tx1, 0.0f); glVertex2f(-player.getWidth() / 2, player.getHeight() / 2);
+		glEnd();
+		glPopMatrix();
+
+		struct timespec now;
+		clock_gettime(CLOCK_REALTIME, &now);
+		double timeDiff = timers.timeDiff(&g.hatchTime, &now);
+		if (timeDiff > 0.3) {
+			g.hatchFrame++;
+			timers.recordTime(&g.hatchTime);
+		}
+
+		if (g.hatchFrame >= totalFrames) {
+			g.hatchFrame = 0;
+			g.spawnAnimation = false;
+		}
+	///
+		if (start && g.gracePeriod > 0.0f) {
+		Rect r;
+		r.bot = g.yres / 2;
+		r.left = g.xres /2 - 40;
+		r.center = 1;
+		ggprint8b(&r, 16, 0x00ff0000, "Get Ready!");
+		return; 
+	}
+	}	
+	//
 	if (g.paused) {
      render_Pmenu();
 	}

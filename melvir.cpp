@@ -26,7 +26,8 @@ const int framesPerAction[NUM_STATES] = {
     4, // JUMP
     3, // KICK
     6, // MOVE
-    6  // SCAN
+    6,  // SCAN
+    4  // HATCHING 
 };
 
 Player::Player(Image* img[NUM_STATES], float x, float y, int w, int h) 
@@ -79,7 +80,11 @@ void Player::loadTextures(Image* img[NUM_STATES]) {
 }
 
 void Player::updateState(PlayerState newState) {
-    if (currentState != newState) {
+    if (g.spawnAnimation && currentState != HATCH) {
+        currentState = HATCH;
+    } else if (!g.spawnAnimation && currentState == HATCH) {
+        currentState = IDLE;
+    } else if (currentState != newState) {
         currentState = newState;
     }
 }
@@ -141,42 +146,30 @@ void Player::triggerDash(int key) {
 }
 
 void Player::handleInput(int key) {
-    
     this->velocity[0] = 0.0f;
-    this->velocity[1] = 0.0f;
 
-    if (key == XK_Left) {
+    if (key == XK_Up) {
+        g.jumping = true;
+        if (this->velocity[1] == 0.0f) { 
+            updateState(JUMP);
+            this->velocity[1] = JUMP_SPEED;
+
+            // Add slight boost if moving while jumping
+            if (g.moving) {
+                this->velocity[0] = (facingLeft ? -MOVE_SPEED : MOVE_SPEED) * 1.0f;   
+            }
+        }
+    } else if (key == XK_Left) {
         g.moving = true;
         this->velocity[0] = -MOVE_SPEED; 
     } else if (key == XK_Right) {
         g.moving = true;
         this->velocity[0] = MOVE_SPEED; 
-    } else if (key == XK_Up) {
-        if (this->velocity[1] == 0.0f) { 
-            g.jumping = true;
-            updateState(JUMP);
-            this->velocity[1] = JUMP_SPEED;
-            this->position[1] += this->velocity[1] * 0.016f;      // Add horizontal boost during jump
-            std::cout << "Player jumped: velocityY=" << this->velocity[1]
-                  << ", positionY=" << this->position[1] << std::endl;
-        }
-    } else {
-        this->velocity[0] = 0.0f; 
-    }
-
-    if(key == XK_Up){
-        g.jumping = true;
-        if (this->velocity[1] == 0.0f) { 
-            g.jumping = true;
-            updateState(JUMP);
-            this->velocity[1] = JUMP_SPEED;
-        } 
     } else {
         this->velocity[0] = 0.0f;
-    } 
+    }
 
-    triggerDash(key);
-
+    // Handle actions based on the key
     switch (key) {
         case XK_Left: 
             updateState(MOVE);
@@ -190,7 +183,6 @@ void Player::handleInput(int key) {
             break;
         case XK_Up:
             updateState(JUMP);
-            //y += MOVE_SPEED;
             break;
         case XK_Down: 
             break;
@@ -198,6 +190,11 @@ void Player::handleInput(int key) {
 }
 
 void Player::updatePlayer(float deltaTime) {
+
+    if (g.jumping) {
+        float gravityFactor = 0.5f;
+        this->velocity[1] -= GRAVITY * gravityFactor * deltaTime;
+    }
     
     this->position[0] += this->velocity[0] * deltaTime;
     this->position[1] += this->velocity[1] * deltaTime;
@@ -275,7 +272,7 @@ void Player::render() {
     healthMeter();
 }
 
-void drawHeart(float x, float y, float size, int filledSegments) 
+void Player::drawHeart(float x, float y, float size, int filledSegments) 
 {
     // Draw full or half heart
     if (filledSegments >= 1) 
@@ -331,6 +328,23 @@ void Player::healthMeter()
     int fullHearts = playerHealth.GetCurrentHealth() / 10;
     float remainingHealth = playerHealth.GetCurrentHealth() % 10;
 
+    // Debugging output (optional, can be removed later)
+    // std::cout << "Rendering " << maxHearts << " hearts. Full: " << fullHearts 
+    //           << ", Remaining Health: " << remainingHealth << std::endl;
+
+    glDisable(GL_TEXTURE_2D);
+    glEnable(GL_BLEND);
+
+    // Switch to orthographic projection for 2D rendering
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    glOrtho(0, g.xres, 0, g.yres, -1, 1);
+
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+
     for (int i = 0; i < maxHearts; i++) {
         float x = startX + i * (heartSize + gap);
         float y = startY;
@@ -344,6 +358,15 @@ void Player::healthMeter()
             drawHeart(x, y, heartSize, 0); // Empty heart
         }
     }
+
+    // Restore projection and modelview matrices
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    glPopMatrix();
+
+    glEnable(GL_TEXTURE_2D); // Re-enable textures for the rest of the game
+    glDisable(GL_BLEND); 
 }
 
 void Player::handleFalling(const Platform& platforms) {
@@ -362,10 +385,10 @@ void Player::handleFalling(const Platform& platforms) {
             onPlatform = true;
 
             // Align the player with the platform
-            this->position[1] = platformHitbox.y + platformHitbox.height;
-            this->velocity[1] = 0.0f; // Stop falling
-            g.jumping = false;
-            //std::cout << "Player landed on platform at y=" << this->position[1] << std::endl;
+            if (!g.jumping && this->velocity[1] <= 0) {
+                this->position[1] = platformHitbox.y + platformHitbox.height;
+                this->velocity[1] = 0.0f; 
+            }
             break;
         }
         temp = temp->next;
@@ -373,12 +396,19 @@ void Player::handleFalling(const Platform& platforms) {
 
     if (!onPlatform) {
         this->velocity[1] -= GRAVITY * 0.016f; // Simulate gravity with deltaTime
-        this->position[1] += this->velocity[1]; // Update player position
+    }
 
-        if (this->position[1] < 0) {
-            //playerHealth.isDead = true; // Mark the player as dead
-            std::cout << "Player has fallen off the screen and died." << std::endl;
-        }
+    this->position[1] += this->velocity[1]; // Update player position based on velocity
+
+    if (onPlatform) {
+        g.jumping = false; // Stop jumping when the player lands on a platform
+    }
+
+    if (this->position[1] < 0) {
+        // Logic when the player falls off the screen
+        std::cout << "Player has fallen off the screen and died." << std::endl;
+        playerHealth.TakeDamage(100); // Apply damage
+        playerHealth.IsDead();       // Mark player as dead if necessary
     }
 
     updateHitbox(); // Ensure the hitbox reflects the updated position
