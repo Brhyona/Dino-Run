@@ -115,6 +115,8 @@ public:
 	//enemies
 	Image *BatImage;
 	GLuint BatTexture;
+	Image *fireImage;
+	GLuint fireTexture;
 
 	Vec box[20];
 

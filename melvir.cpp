@@ -11,7 +11,7 @@
 constexpr float MOVE_SPEED = 6.0f;
 constexpr float JUMP_SPEED = 10.0f;
 constexpr float DASH_SPEED = 12.0f;
-constexpr float GRAVITY = 9.8f;
+constexpr float GRAVITY = 9.0f;
 constexpr float DASH_THRESHOLD = 0.30f;
 constexpr float PI = 3.14159265358979323846f;
 bool facingLeft = false;
@@ -165,6 +165,26 @@ void Player::handleInput(int key) {
     } else if (key == XK_Right) {
         g.moving = true;
         this->velocity[0] = MOVE_SPEED; 
+    } else if (key == XK_Up) {
+        if (this->velocity[1] == 0.0f) { 
+            g.jumping = true;
+            updateState(JUMP);
+            this->velocity[1] = JUMP_SPEED;
+            this->position[1] += this->velocity[1] * 0.016f;      // Add horizontal boost during jump
+            std::cout << "Player jumped: velocityY=" << this->velocity[1]
+                  << ", positionY=" << this->position[1] << std::endl;
+        }
+    } else {
+        this->velocity[0] = 0.0f; 
+    }
+
+    if(key == XK_Up){
+        g.jumping = true;
+        if (this->velocity[1] == 0.0f) { 
+            g.jumping = true;
+            updateState(JUMP);
+            this->velocity[1] = JUMP_SPEED;
+        } 
     } else {
         this->velocity[0] = 0.0f;
     }
@@ -404,6 +424,10 @@ void Player::handleFalling(const Platform& platforms) {
         g.jumping = false; // Stop jumping when the player lands on a platform
     }
 
+        if (this->position[1] < 0) {
+            //playerHealth.isDead = true; // Mark the player as dead
+            //std::cout << "Player has fallen off the screen and died." << std::endl;
+        }
     if (this->position[1] < 0) {
         // Logic when the player falls off the screen
         std::cout << "Player has fallen off the screen and died." << std::endl;

@@ -8,9 +8,7 @@ public:
 
     void TakeDamage(int damage);
     void Heal(int amount);
-
     bool IsDead() const;
-
     int GetCurrentHealth() const;
     void SetMaxHealth(int new_max);
     int GetMaxHealth() const;

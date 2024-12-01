@@ -1,5 +1,3 @@
-// background.cpp
-
 #include <iostream>
 #include <chrono>
 #include <stdio.h>
@@ -15,12 +13,9 @@
 #include "src/setup/Global.h"
 #include "src/setup/jpompa.h"
 #include "src/setup/melvir.h"
-#include "src/setup/bthomas.h"
 #include "src/setup/health.h"
-#include <vector>
 
-
-Image img[16]= {
+Image img[13]= {
 	"src/assets/textures/menu/background.png",
 	"src/assets/textures/ground/platform.png",
 	"src/assets/textures/ground/coin.png",
@@ -34,26 +29,14 @@ Image img[16]= {
 	"src/assets/textures/player/kick.png",
 	"src/assets/textures/player/move.png",
 	"src/assets/textures/player/scan.png",
-	"src/assets/textures/player/hatch.png",
-	"src/assets/textures/enemies/bat.png",
-	"src/assets/textures/enemies/fire_ball.png"
-	
 };
-
-Image Mimg[13] {
-	"src/assets/textures/menu/pausedmenu.png",
+Image Mimg[6] {
+	"src/assets/textures/menu/Pausedmenu.png",
 	"src/assets/textures/menu/playbuttonMini.png",
 	"src/assets/textures/menu/hover.png",
 	"src/assets/textures/menu/title.png",
 	"src/assets/textures/menu/shadow.png",
-	"src/assets/textures/menu/nextbutton.png",
-	"src/assets/textures/menu/info_background.png",
-	"src/assets/textures/menu/keys/esc_key.png",
-	"src/assets/textures/menu/keys/arrow_key.png",
-	"src/assets/textures/menu/keys/space_bar.png",
-	"src/assets/textures/menu/keys/p_key.png",
-	"src/assets/textures/menu/keys/i_key.png",
-	"src/assets/textures/menu/keys/game_controls.png"
+	"src/assets/textures/menu/nextbutton.png"
 };
 
 Image* playerImages[NUM_STATES] = {
@@ -67,19 +50,17 @@ Image* playerImages[NUM_STATES] = {
 	&img[10],
 	&img[11],
 	&img[12],
-	&img[13],	
 };
 
 Global g;
 
 Platform platform(&img[1], 320.0f, 100.0f, 641.0f, 231.0f);
 Coin coin(&img[2], 100.0f, 200.0f, 32.0f, 32.0f, &platform); 
-Player player(playerImages, 220.0f, 230.0f, 64.0f, 64.0f); // Player Position would be fixed here
-Bat bat(&img[13],320.0f,240.0f,32.0f,32.0f, player);
+Player player(playerImages, 320.0f, 100.0f, 64.0f, 64.0f);
 
 float scrollSpeed = 0.0001;
-extern bool start;
-extern bool info;
+bool start = false;
+bool info = false;
 extern void render_menu();
 extern void render_Pmenu();
 extern void render_controlInfo();
@@ -166,7 +147,6 @@ public:
 } x11;
 
 void init_opengl(void);
-void cleanup_textures(void);
 void check_mouse(XEvent *e);
 int check_keys(XEvent *e);
 void physics(void);
@@ -190,9 +170,7 @@ int main()
 		render();
 		x11.swapBuffers();
 	}
-	cleanup_textures();
 	cleanup_fonts();
-	x11.cleanupXWindows();
 	return 0;
 }
 
@@ -209,6 +187,7 @@ void init_opengl(void)
 	glClearColor(1.0, 1.0, 1.0, 1.0);
 	//glClear(GL_COLOR_BUFFER_BIT);
 	//Do this to allow texture maps
+	
 	
 	// allow fonts 
 	glEnable(GL_TEXTURE_2D);
@@ -400,29 +379,6 @@ void init_opengl(void)
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
 							GL_RGBA, GL_UNSIGNED_BYTE, playerScanData);
 	free(playerScanData);
-//
-	//Player Hatch	
-	g.tex.playerHatchImage = &img[13];
-	w = g.tex.playerHatchImage->width;
-	h = g.tex.playerHatchImage->height;
-	glGenTextures(1, &g.tex.playerHatchTexture); 
-	glBindTexture(GL_TEXTURE_2D, g.tex.playerHatchTexture);
-	/*
-	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-	*/
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	
-	unsigned char *playerHatchData = g.tex.playerHatchImage->buildAlphaData(&img[13]);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
-							GL_RGBA, GL_UNSIGNED_BYTE, playerHatchData);
-	free(playerHatchData);	
-
-//
-
 
 	player.loadTextures(playerImages);
 	
@@ -594,69 +550,8 @@ void init_opengl(void)
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
         				GL_RGBA, GL_UNSIGNED_BYTE, control_MData);
     free(control_MData);
-
-
-	g.tex.BatImage = &img[14];
-	w = g.tex.BatImage->width;
-	h = g.tex.BatImage->height;
-	glGenTextures(1, &g.tex.BatTexture); 
-	glBindTexture(GL_TEXTURE_2D, g.tex.BatTexture);
-	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-	
-	unsigned char *BatData = g.tex.BatImage->buildAlphaData(&img[14]);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
-							GL_RGBA, GL_UNSIGNED_BYTE, BatData);
-	free(BatData);
-
-	g.tex.fireImage = &img[15];
-	w = g.tex.fireImage->width;
-	h = g.tex.fireImage->height;
-	glGenTextures(1, &g.tex.fireTexture); 
-	glBindTexture(GL_TEXTURE_2D, g.tex.fireTexture);
-	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-	
-	unsigned char *fireData = g.tex.fireImage->buildAlphaData(&img[15]);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
-							GL_RGBA, GL_UNSIGNED_BYTE, fireData);
-	free(fireData);
-
-	
-
-	player.loadTextures(playerImages);
 }
 
-void cleanup_textures() {
-	glDeleteTextures(1, &g.tex.backTexture);
-    glDeleteTextures(1, &g.tex.platformTexture);
-    glDeleteTextures(1, &g.tex.coinTexture);
-    glDeleteTextures(1, &g.tex.playerAvoidTexture);
-    glDeleteTextures(1, &g.tex.playerBiteTexture);
-    glDeleteTextures(1, &g.tex.playerDashTexture);
-    glDeleteTextures(1, &g.tex.playerDeadTexture);
-    glDeleteTextures(1, &g.tex.playerHurtTexture);
-    glDeleteTextures(1, &g.tex.playerIdelTexture);
-    glDeleteTextures(1, &g.tex.playerJumpTexture);
-    glDeleteTextures(1, &g.tex.playerKickTexture);
-    glDeleteTextures(1, &g.tex.playerMoveTexture);
-    glDeleteTextures(1, &g.tex.playerScanTexture);
-    glDeleteTextures(1, &g.tex.BatTexture);
-    glDeleteTextures(1, &g.tex.fireTexture);
-    glDeleteTextures(1, &g.tex.playbuttonTexture);
-    glDeleteTextures(1, &g.tex.TitleTexture);
-    glDeleteTextures(1, &g.tex.MenuTexture);
-    glDeleteTextures(1, &g.tex.PTitleTexture);
-    glDeleteTextures(1, &g.tex.playbuttonMiniTexture);
-    glDeleteTextures(1, &g.tex.nextbuttonTexture);
-    glDeleteTextures(1, &g.tex.info_backTexture);
-    glDeleteTextures(1, &g.tex.esc_keyTexture);
-    glDeleteTextures(1, &g.tex.arrow_keyTexture);
-    glDeleteTextures(1, &g.tex.space_barTexture);
-    glDeleteTextures(1, &g.tex.p_keyTexture);
-    glDeleteTextures(1, &g.tex.i_keyTexture);
-    glDeleteTextures(1, &g.tex.control_MTexture);
-}
 void check_mouse(XEvent *e)
 {
 	//Did the mouse move?
@@ -682,7 +577,6 @@ void check_mouse(XEvent *e)
 			mousey >= buttonBottom &&
 			mousey <= buttonTop) {
 				start = true;
-				bat.resetTimer();
 			}
 			if (e->type == ButtonPress) {
 		if (e->xbutton.button==1 && g.paused) {
@@ -770,48 +664,24 @@ void physics()
 	std::chrono::duration<float> elapsed = currentTime - lastTime;
 	float deltaTime = elapsed.count();
 	lastTime = currentTime;
-	// Grace Period Start
-	if (start && g.gracePeriod > 0.0f) {
-		g.gracePeriod -= deltaTime;
-		if (g.gracePeriod <= 0.0f) {
-			g.IsGracePeriod = false;
-			g.spawnAnimation = false; 
-		}
-		return;
-	}
-
-	if (g.spawnAnimation) {
-		return;
-	}
-
-	//	
 	if(!g.paused) 
 	{
 		g.tex.xc[0] += scrollSpeed;
 		g.tex.xc[1] += scrollSpeed;
 		platform.updatePlatforms(g.xres, g.yres, deltaTime);
 		coin.updateCoins(g.xres, g.yres, deltaTime);
-		coin.checkCoinCollision(player);
+		player.updatePlayer(deltaTime);
 		player.handleFalling(platform);
-    	bat.updateTimer(deltaTime);
-		bat.shootFireball();
-		bat.checkFireCollision(player);
-		bat.updateSwooping(deltaTime);
-		//std::cout<< "updating "<< bat.fireballs.size() << std::endl;
-		for(auto& fireball : bat.fireballs) {
-			fireball.update();
-		}
-
-	}	
+	}
+	
 	
 }
 
 void render()
 {
 	
-	
-	glClear(GL_COLOR_BUFFER_BIT);
 	glEnable(GL_TEXTURE_2D);
+	glClear(GL_COLOR_BUFFER_BIT);
 	glColor3f(1.0, 1.0, 1.0);
 	
 	float screenAspect = static_cast<float>(g.xres) / g.yres;
@@ -854,89 +724,19 @@ void render()
 
 	glPushMatrix();
 	glBindTexture(GL_TEXTURE_2D, player.getTexture());
-	//glEnable(GL_ALPHA_TEST);
-	//glAlphaFunc(GL_GREATER, 0.0f);
+	glEnable(GL_ALPHA_TEST);
+	glAlphaFunc(GL_GREATER, 0.0f);
 	glColor4ub(255,255,255,255);
     player.render();
-	bat.render();
-	glPopMatrix();
-	//std::cout<< "Number of fireballs" << bat.fireballs.size() << std::endl;
-	
-	glBindTexture(GL_TEXTURE_2D, g.tex.fireTexture);
-	glEnable(GL_BLEND);
-	glEnable(GL_ALPHA_TEST);
-	glEnable(GL_TEXTURE_2D);
-	for(auto& fireball : bat.fireballs) {
-	fireball.render_fire();
-	}
-   
-    glDisable(GL_BLEND);
-    glDisable(GL_ALPHA_TEST);
-	glDisable(GL_TEXTURE_2D);
-
-    //render_menu();	
-    //render_Pmenu();
     glPopMatrix();
-
-	//
-	if (start && g.spawnAnimation) {
-		glEnable(GL_BLEND);
-		glEnable(GL_TEXTURE_2D);
-		//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-glEnable(GL_ALPHA_TEST);
-//glAlphaFunc(GL_GREATER, 0.0f);
-
-		int totalFrames = 4;
-		float frameWidth = 1.0f / totalFrames;
-		float tx1 = g.hatchFrame * frameWidth;
-		float tx2 = tx1 + frameWidth;
-
-		glBindTexture(GL_TEXTURE_2D, g.tex.playerHatchTexture);
-		glColor4ub(255, 255, 255, 255);
-		glPushMatrix();
-		glTranslatef(player.getX(), player.getY(), 0);
-		glBegin(GL_QUADS);
-			glTexCoord2f(tx1, 1.0f); glVertex2f(-player.getWidth() / 2, -player.getHeight() / 2);
-			glTexCoord2f(tx2, 1.0f); glVertex2f(player.getWidth() / 2, -player.getHeight() / 2);
-			glTexCoord2f(tx2, 0.0f); glVertex2f(player.getWidth() / 2, player.getHeight() / 2);
-			glTexCoord2f(tx1, 0.0f); glVertex2f(-player.getWidth() / 2, player.getHeight() / 2);
-		glEnd();
-		glPopMatrix();
-glDisable(GL_BLEND);
-glDisable(GL_TEXTURE_2D);
-glDisable(GL_ALPHA_TEST);
-		struct timespec now;
-		clock_gettime(CLOCK_REALTIME, &now);
-		double timeDiff = timers.timeDiff(&g.hatchTime, &now);
-		if (timeDiff > 0.3) {
-			g.hatchFrame++;
-			timers.recordTime(&g.hatchTime);
-		}
-
-		if (g.hatchFrame >= totalFrames) {
-			g.hatchFrame = 0;
-			g.spawnAnimation = false;
-		}
 	
-		if (start && g.gracePeriod > 0.0f) {
-		glBindTexture(GL_TEXTURE_2D, 0);
-    	glEnable(GL_TEXTURE_2D);
-		Rect r;
-		initialize_fonts();
-		r.bot = g.yres / 2;
-		r.left = g.xres /2 - 40;
-		r.center = 1;
-		ggprint10(&r, 16, 0x00000000, "Get Ready!");
-		glDisable(GL_TEXTURE_2D);
-		return; 
+	if (!start) {
+    render_menu();
 	}
-	}	
-	
-	render_menu();
-    render_Pmenu();
+	if (g.paused) {
+     render_Pmenu();
+	}
+	if (info) {
 	render_controlInfo();
-	
-	
+	}
 }
-
-

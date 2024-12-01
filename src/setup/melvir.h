@@ -36,7 +36,7 @@ private:
     PlayerState currentState;
     float x, y, width, height, frameDuration;
     int frameIndex = 0;
-    Health playerHealth;
+    //Health playerHealth;
     bool dashing;
     bool dashCompleted;
 
@@ -60,6 +60,8 @@ public:
     void healthMeter();
     void drawHeart(float x, float y, float size, int filledSegments);
     void render();
+     Health playerHealth;
+     const Hitbox& getHitbox() const { return hitbox;}
     ~Player();
 //
     float getWidth() const {
