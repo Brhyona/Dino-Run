@@ -1,8 +1,8 @@
-// health.cpp
-
 #include "src/setup/health.h"
 
-Health::Health(int max_hp) : max_health(max_hp), current_health(max_hp) {}
+Health::Health(int max_hp) : max_health(max_hp), current_health(max_hp) {
+    lastDamageTime = std::chrono::steady_clock::now();
+}
 
 void Health::TakeDamage(int damage) {
     current_health -= damage;
@@ -18,6 +18,11 @@ void Health::Heal(int amount) {
     }
 }
 
+void Health::ApplyTimeDamage(int damagePerSecond, float timeElapsed) {
+    int damage = static_cast<int>(damagePerSecond * timeElapsed);
+    TakeDamage(damage);
+}
+
 bool Health::IsDead() const {
     return current_health <= 0;
 }
@@ -28,11 +33,17 @@ int Health::GetCurrentHealth() const {
 
 void Health::SetMaxHealth(int new_max) {
     max_health = new_max;
-    if (current_health > max_health) {
-        current_health = max_health;
-    }
 }
 
 int Health::GetMaxHealth() const {
     return max_health;
 }
+
+std::chrono::steady_clock::time_point Health::GetLastDamageTime() const {
+    return lastDamageTime;
+}
+
+void Health::SetLastDamageTime(std::chrono::steady_clock::time_point time) {
+    lastDamageTime = time;
+}
+

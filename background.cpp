@@ -40,12 +40,12 @@ Image img[16]= {
 	
 };
 
-Image Mimg[13] {
+Image Mimg[16] {
 	"src/assets/textures/menu/pausedmenu.png",
 	"src/assets/textures/menu/playbuttonMini.png",
-	"src/assets/textures/menu/hover.png",
-	"src/assets/textures/menu/title.png",
-	"src/assets/textures/menu/shadow.png",
+	"src/assets/textures/menu/Hover.png",
+	"src/assets/textures/menu/Title.png",
+	"src/assets/textures/menu/Shadow.png",
 	"src/assets/textures/menu/nextbutton.png",
 	"src/assets/textures/menu/info_background.png",
 	"src/assets/textures/menu/keys/esc_key.png",
@@ -53,7 +53,10 @@ Image Mimg[13] {
 	"src/assets/textures/menu/keys/space_bar.png",
 	"src/assets/textures/menu/keys/p_key.png",
 	"src/assets/textures/menu/keys/i_key.png",
-	"src/assets/textures/menu/keys/game_controls.png"
+	"src/assets/textures/menu/keys/game_controls.png",
+    "src/assets/textures/menu/GameOverTitle.png",
+    "src/assets/textures/menu/Quit.png",
+    "src/assets/textures/menu/Restart.png"
 };
 
 Image* playerImages[NUM_STATES] = {
@@ -80,9 +83,12 @@ Bat bat(&img[13],320.0f,240.0f,32.0f,32.0f, player);
 float scrollSpeed = 0.0001;
 extern bool start;
 extern bool info;
+extern bool gameOver;
 extern void render_menu();
 extern void render_Pmenu();
 extern void render_controlInfo();
+extern void render_GameOverScreen();
+
 void cleanup_textures();
 extern void check_button(ButtonType type, int mousex, int mousey, Bat& bat);
 
@@ -616,6 +622,47 @@ void init_opengl(void)
 							GL_RGBA, GL_UNSIGNED_BYTE, fireData);
 	free(fireData);
 
+    //GameOverTitle
+   g.tex.GameOverTitleImage = &Mimg[14];
+   glGenTextures(1, &g.tex.GameOverTitleTexture);
+    w = g.tex.GameOverTitleImage->width;
+    h = g.tex.GameOverTitleImage->height;
+   glBindTexture(GL_TEXTURE_2D, g.tex.GameOverTitleTexture);
+   glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+   glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+   unsigned char * GameOverTitleData = g.tex.GameOverTitleImage->buildAlphaData(&Mimg[14]);
+   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
+                       GL_RGBA, GL_UNSIGNED_BYTE, GameOverTitleData);
+   free(GameOverTitleData);
+
+
+   //Quit button
+   g.tex.quitButtonImage = &Mimg[15];
+   glGenTextures(1, &g.tex.quitButtonTexture);
+    w = g.tex.quitButtonImage->width;
+    h = g.tex.quitButtonImage->height;
+   glBindTexture(GL_TEXTURE_2D, g.tex.quitButtonTexture);
+   glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+   glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+   unsigned char *quitButtonData = g.tex.quitButtonImage->buildAlphaData(&Mimg[15]);
+   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
+                       GL_RGBA, GL_UNSIGNED_BYTE, quitButtonData);
+   free(quitButtonData);
+
+
+   //Return Button
+   g.tex.restartButtonImage = &Mimg[16];
+   glGenTextures(1, &g.tex.restartButtonTexture);
+    w = g.tex.restartButtonImage->width;
+    h = g.tex.restartButtonImage->height;
+   glBindTexture(GL_TEXTURE_2D, g.tex.restartButtonTexture);
+   glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+   glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+   unsigned char *restartButtonData = g.tex.restartButtonImage->buildAlphaData(&Mimg[16]);
+   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
+                       GL_RGBA, GL_UNSIGNED_BYTE, restartButtonData);
+   free(restartButtonData);
+
 	player.loadTextures(playerImages);
 }
 
@@ -679,7 +726,33 @@ void check_mouse(XEvent *e)
 			if (info) {
 				check_button(CLOSE_INFO, mousex, mousey, bat);
 			}
-		}
+            
+            //Quit button
+            int quitButtonLeft = g.xres / 2 - (g.xres * 0.05);
+            int quitButtonRight = g.xres / 2 + (g.xres * 0.05);
+            int quitButtonBottom = g.yres / 4 - (g.yres * 0.1);
+            int quitButtonTop = g.yres / 4 + (g.yres * 0.1);
+            if (mousex >= quitButtonLeft &&
+                mousex <= quitButtonRight &&
+                mousey >= quitButtonBottom &&
+                mousey <= quitButtonTop) {
+                exit(0);
+            }
+
+            // Return button
+            int returnButtonLeft = g.xres / 4 - (g.xres * 0.05);
+            int returnButtonRight = g.xres / 4 + (g.xres * 0.05);
+            int returnButtonBottom = g.yres / 4 - (g.yres * 0.1);
+            int returnButtonTop = g.yres / 4 + (g.yres * 0.1);
+            if (mousex >= returnButtonLeft &&
+                mousex <= returnButtonRight &&
+                mousey >= returnButtonBottom &&
+                mousey <= returnButtonTop) {
+                g.isGameOver = false;
+                start = true;
+                return;
+            }
+        }
 	}
 
 	if (savex != e->xbutton.x || savey != e->xbutton.y) {
@@ -871,7 +944,7 @@ void render()
 	render_menu();
     render_Pmenu();
 	render_controlInfo();
-	
+	render_GameOverScreen();
 	
 }
 
