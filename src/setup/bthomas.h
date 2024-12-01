@@ -11,19 +11,47 @@
 #include<chrono>
 
 enum BatState {
- BAT_FLYING,
- NUM_BAT_STATES
+    BAT_FLYING,
+    NUM_BAT_STATES
 };
+
+enum ButtonType {
+    START,
+    PAUSE,
+    INFO,
+    CLOSE_INFO
+};
+
 class Player;
 
-class Fireball {
+struct Button 
+{
+    int left, right, bottom, top;
+    Button(float xresFactor, float yresFactor, float xOffset = 0.5f, 
+        float yOffset = 0.25f) {
+        left = g.xres * xOffset - (g.xres * xresFactor);
+        right = g.xres * xOffset + (g.xres * xresFactor);
+        bottom = g.yres * yOffset - (g.yres * yresFactor);
+        top = g.yres * yOffset + (g.yres * yresFactor);
+    }
+    bool isClicked(int mousex, int mousey) const {
+        return mousex >= left &&
+                mousex <= right && 
+                mousey >= bottom &&
+                mousey <= top;
+    }
+};
+
+class Fireball 
+{
 private:
     float x, y;
     float velocityX, velocityY;
     float width;
     float height;
     float gravity;
-    void findContact(const Hitbox& box, float circleX, float circleY, float& closestX, float& closestY) const {
+    void findContact(const Hitbox& box, float circleX, float circleY, 
+                    float& closestX, float& closestY) const {
         closestX = std::max(box.x, std::min(circleX, box.x + box.width));
         closestY = std::max(box.y, std::min(circleY, box.y + box.height));
     }
@@ -32,11 +60,12 @@ private:
     
 public:
     Fireball( float startX, float startY, float iniX, float iniY );
-   // ~Fireball();
-   bool active; 
+    ~Fireball();
+    bool active; 
     bool hasDamaged = false;
     int currentFrame;
     float animTimer;
+    GLuint texture;
     void update();
     void render_fire();
     bool isActive() const { return active;}
@@ -44,11 +73,11 @@ public:
     bool checkCollision(const Player& player) const;
     float getCollisionRadius() const { return width / 6.0f;}
     static const int DAMAGE_AMOUNT = 2;
-    
 };
 
-class Bat {
-    private: 
+class Bat  
+{
+private: 
     Player& player;
     GLuint texture;
     BatState currentState;
@@ -66,12 +95,12 @@ class Bat {
     float spawnTimer;
     const float SPAWN_DELAY = 5.0f;
     bool timerStarted;
-    static constexpr float DESPAWN_TIME = 30.0f;
+    static constexpr float DESPAWN_TIME = 10.0f;
      bool firstSpawn = true;
     float moveDirection = 1.0f;
     const float SCREEN_MARGIN = 50.0f;
-    const float PATROL_SPEED = 1.0f;
-    const float PATROL_HEIGHT = 700.0f;
+    const float PATROL_SPEED = 2.0f;
+    const float PATROL_HEIGHT = 400.0f;
     void followPlayer();
     void patrolMovement();
     bool isFollowing;
@@ -83,24 +112,23 @@ class Bat {
     const float SWOOP_SPEED = 1.0f;
     float SWOOP_AMPLITUDE = 400.0f;
     float originalY = 0.0f;
+    float originalX = 0.0f;
     Hitbox hitbox;
     void updateHitbox() {
-        hitbox.x = x- width/2;
-        hitbox.y = y -height/2;
-        hitbox.width = width;
-        hitbox.height = height;
+        hitbox.x = x; 
+        hitbox.y = y;
+        hitbox.width = width*3;
+        hitbox.height = height*3;
     }
     void performSwoop(float deltaTime);
     float targetSwoopX;
     float targetSwoopY;
 
-//add hit box
-    public:
-
+public:
     Bat(Image* img, float startx, float starty, float w, float h, Player& p);
     ~Bat();
     const Hitbox& getBatbox() const { return hitbox;}
-     std::chrono::steady_clock::time_point startTime;
+    std::chrono::steady_clock::time_point startTime;
     bool IsActive();
     void updateSpawnTimer(float deltaTime);
     void updateAnimation();
@@ -126,15 +154,5 @@ class Bat {
     void reset();  
     void updateSwooping (float deltaTime);
     void resetTimer();
-
-};
-
-class Menu {
-    private:
-
-
-    public:
-
-    
-};
-    #endif //BTHOMAS
+};  
+#endif //BTHOMAS

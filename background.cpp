@@ -83,8 +83,11 @@ extern bool info;
 extern void render_menu();
 extern void render_Pmenu();
 extern void render_controlInfo();
+void cleanup_textures();
+extern void check_button(ButtonType type, int mousex, int mousey, Bat& bat);
 
-class X11_wrapper {
+class X11_wrapper 
+{
 private:
 	Display *dpy;
 	Window win;
@@ -120,8 +123,10 @@ public:
 		glXMakeCurrent(dpy, win, glc);
 	}
 	void cleanupXWindows() {
+		cleanup_textures();
 		XDestroyWindow(dpy, win);
 		XCloseDisplay(dpy);
+		exit(0);
 	}
 	void setup_screen_res(const int w, const int h) {
 		g.xres = w;
@@ -215,7 +220,7 @@ void init_opengl(void)
     initialize_fonts();
 
 	//load the images file into a ppm structure.
-	
+
 	//Background
 	g.tex.backImage = &img[0];
 	glGenTextures(1, &g.tex.backTexture);
@@ -240,7 +245,6 @@ void init_opengl(void)
 	glBindTexture(GL_TEXTURE_2D, g.tex.platformTexture);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-
 	unsigned char *platformData = g.tex.platformImage->buildAlphaData(&img[1]);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
 							GL_RGBA, GL_UNSIGNED_BYTE, platformData);
@@ -254,7 +258,6 @@ void init_opengl(void)
 	glBindTexture(GL_TEXTURE_2D, g.tex.coinTexture);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-
 	unsigned char *coinData = g.tex.coinImage->buildAlphaData(&img[2]);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
 							GL_RGBA, GL_UNSIGNED_BYTE, coinData);
@@ -268,8 +271,8 @@ void init_opengl(void)
 	glBindTexture(GL_TEXTURE_2D, g.tex.playerAvoidTexture);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);	
-	
-	unsigned char *playerAvoidData = g.tex.playerAvoidImage->buildAlphaData(&img[3]);
+	unsigned char *playerAvoidData = g.tex.playerAvoidImage->
+									buildAlphaData(&img[3]);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
 							GL_RGBA, GL_UNSIGNED_BYTE, playerAvoidData);
 	free(playerAvoidData);
@@ -282,8 +285,8 @@ void init_opengl(void)
 	glBindTexture(GL_TEXTURE_2D, g.tex.playerBiteTexture);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-	
-	unsigned char *playerBiteData = g.tex.playerBiteImage->buildAlphaData(&img[4]);
+	unsigned char *playerBiteData = g.tex.playerBiteImage->
+									buildAlphaData(&img[4]);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
 							GL_RGBA, GL_UNSIGNED_BYTE, playerBiteData);
 	free(playerBiteData);
@@ -296,8 +299,8 @@ void init_opengl(void)
 	glBindTexture(GL_TEXTURE_2D, g.tex.playerDashTexture);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-
-	unsigned char *playerDashData = g.tex.playerDashImage->buildAlphaData(&img[5]);
+	unsigned char *playerDashData = g.tex.playerDashImage->
+									buildAlphaData(&img[5]);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
 							GL_RGBA, GL_UNSIGNED_BYTE, playerDashData);
 	free(playerDashData);
@@ -310,8 +313,8 @@ void init_opengl(void)
 	glBindTexture(GL_TEXTURE_2D, g.tex.playerDeadTexture);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-	
-	unsigned char *playerDeadData = g.tex.playerDeadImage->buildAlphaData(&img[6]);
+	unsigned char *playerDeadData = g.tex.playerDeadImage->
+									buildAlphaData(&img[6]);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
 							GL_RGBA, GL_UNSIGNED_BYTE, playerDeadData);
 	free(playerDeadData);
@@ -324,8 +327,8 @@ void init_opengl(void)
 	glBindTexture(GL_TEXTURE_2D, g.tex.playerHurtTexture);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-
-	unsigned char *playerHurtData = g.tex.playerHurtImage->buildAlphaData(&img[7]);
+	unsigned char *playerHurtData = g.tex.playerHurtImage->
+									buildAlphaData(&img[7]);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
 							GL_RGBA, GL_UNSIGNED_BYTE, playerHurtData);
 	free(playerHurtData);
@@ -338,8 +341,8 @@ void init_opengl(void)
 	glBindTexture(GL_TEXTURE_2D, g.tex.playerIdelTexture);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-
-	unsigned char *playerIdelData = g.tex.playerIdelImage->buildAlphaData(&img[8]);
+	unsigned char *playerIdelData = g.tex.playerIdelImage->
+									buildAlphaData(&img[8]);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
 							GL_RGBA, GL_UNSIGNED_BYTE, playerIdelData);
 	free(playerIdelData);
@@ -352,8 +355,8 @@ void init_opengl(void)
 	glBindTexture(GL_TEXTURE_2D, g.tex.playerJumpTexture);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-
-	unsigned char *playerJumpData = g.tex.playerJumpImage->buildAlphaData(&img[9]);
+	unsigned char *playerJumpData = g.tex.playerJumpImage->
+									buildAlphaData(&img[9]);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
 							GL_RGBA, GL_UNSIGNED_BYTE, playerJumpData);
 	free(playerJumpData);
@@ -366,8 +369,8 @@ void init_opengl(void)
 	glBindTexture(GL_TEXTURE_2D, g.tex.playerKickTexture);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-	
-	unsigned char *playerKickData = g.tex.playerKickImage->buildAlphaData(&img[10]);
+	unsigned char *playerKickData = g.tex.playerKickImage->
+									buildAlphaData(&img[10]);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
 							GL_RGBA, GL_UNSIGNED_BYTE, playerKickData);
 	free(playerKickData);	
@@ -380,9 +383,8 @@ void init_opengl(void)
 	glBindTexture(GL_TEXTURE_2D, g.tex.playerMoveTexture);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-	//std::cout << "Loaded playerMoveTexture ID: " << g.tex.playerMoveTexture << std::endl;
-
-	unsigned char *playerMoveData = g.tex.playerMoveImage->buildAlphaData(&img[11]);
+	unsigned char *playerMoveData = g.tex.playerMoveImage->
+									buildAlphaData(&img[11]);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
 							GL_RGBA, GL_UNSIGNED_BYTE, playerMoveData);
 	free(playerMoveData);
@@ -395,42 +397,36 @@ void init_opengl(void)
 	glBindTexture(GL_TEXTURE_2D, g.tex.playerScanTexture);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-	
-	unsigned char *playerScanData = g.tex.playerScanImage->buildAlphaData(&img[12]);
+	unsigned char *playerScanData = g.tex.playerScanImage->
+									buildAlphaData(&img[12]);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
 							GL_RGBA, GL_UNSIGNED_BYTE, playerScanData);
 	free(playerScanData);
-//
+
 	//Player Hatch	
 	g.tex.playerHatchImage = &img[13];
 	w = g.tex.playerHatchImage->width;
 	h = g.tex.playerHatchImage->height;
 	glGenTextures(1, &g.tex.playerHatchTexture); 
 	glBindTexture(GL_TEXTURE_2D, g.tex.playerHatchTexture);
-	/*
-	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-	*/
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	
-	unsigned char *playerHatchData = g.tex.playerHatchImage->buildAlphaData(&img[13]);
+	unsigned char *playerHatchData = g.tex.playerHatchImage->
+									buildAlphaData(&img[13]);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
 							GL_RGBA, GL_UNSIGNED_BYTE, playerHatchData);
 	free(playerHatchData);	
-
-//
-
 
 	player.loadTextures(playerImages);
 	
 	//play button
 	g.tex.playbuttonImage = &Mimg[2];
     glGenTextures(1, &g.tex.playbuttonTexture);
-     w = g.tex.playbuttonImage->width;
-     h = g.tex.playbuttonImage->height;
+    w = g.tex.playbuttonImage->width;
+    h = g.tex.playbuttonImage->height;
 	glBindTexture(GL_TEXTURE_2D, g.tex.playbuttonTexture);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
@@ -439,11 +435,11 @@ void init_opengl(void)
                         GL_RGBA, GL_UNSIGNED_BYTE, buttonData);
     free(buttonData);
 
-	 //title
-	 g.tex.TitleImage = &Mimg[3];
+	//title
+	g.tex.TitleImage = &Mimg[3];
     glGenTextures(1, &g.tex.TitleTexture);
-     w = g.tex.TitleImage->width;
-     h = g.tex.TitleImage->height;
+    w = g.tex.TitleImage->width;
+    h = g.tex.TitleImage->height;
 	glBindTexture(GL_TEXTURE_2D, g.tex.TitleTexture);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
@@ -455,18 +451,19 @@ void init_opengl(void)
     //menu background 
 	g.tex.MenuImage = &Mimg[4];
 	glGenTextures(1, &g.tex.MenuTexture);
-	 w = g.tex.MenuImage->width;
-	 h = g.tex.MenuImage->height;
+	w = g.tex.MenuImage->width;
+	h = g.tex.MenuImage->height;
 	glBindTexture(GL_TEXTURE_2D, g.tex.MenuTexture);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
 	glTexImage2D(GL_TEXTURE_2D, 0, 3, w, h, 0,
 							GL_RGB, GL_UNSIGNED_BYTE, g.tex.MenuImage->data);
+	
 	// pause title
 	g.tex.PTitleImage = &Mimg[0];
     glGenTextures(1, &g.tex.PTitleTexture);
-     w = g.tex.PTitleImage->width;
-     h = g.tex.PTitleImage->height;
+    w = g.tex.PTitleImage->width;
+    h = g.tex.PTitleImage->height;
 	glBindTexture(GL_TEXTURE_2D, g.tex.PTitleTexture);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
@@ -474,23 +471,26 @@ void init_opengl(void)
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
                         GL_RGBA, GL_UNSIGNED_BYTE, PtitleData);
     free(PtitleData);
-      // small play button
+      
+	// small play button
 	g.tex.playbuttonMiniImage = &Mimg[1];
     glGenTextures(1, &g.tex.playbuttonMiniTexture);
-     w = g.tex.playbuttonMiniImage->width;
-     h = g.tex.playbuttonMiniImage->height;
+    w = g.tex.playbuttonMiniImage->width;
+    h = g.tex.playbuttonMiniImage->height;
 	glBindTexture(GL_TEXTURE_2D, g.tex.playbuttonMiniTexture);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-	unsigned char *MinibuttonData = g.tex.playbuttonMiniImage->buildAlphaData(&Mimg[1]);
+	unsigned char *MinibuttonData = g.tex.playbuttonMiniImage->
+									buildAlphaData(&Mimg[1]);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
                         GL_RGBA, GL_UNSIGNED_BYTE, MinibuttonData);
     free(MinibuttonData);
-     // arrow button
+    
+	// arrow button
 	g.tex.nextbuttonImage = &Mimg[5];
     glGenTextures(1, &g.tex.nextbuttonTexture);
-     w = g.tex.nextbuttonImage->width;
-     h = g.tex.nextbuttonImage->height;
+    w = g.tex.nextbuttonImage->width;
+    h = g.tex.nextbuttonImage->height;
 	glBindTexture(GL_TEXTURE_2D, g.tex.nextbuttonTexture);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
@@ -498,11 +498,12 @@ void init_opengl(void)
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
                         GL_RGBA, GL_UNSIGNED_BYTE, nextbuttonData);
     free(nextbuttonData);
-     // control backdrop 
+     
+	// control backdrop 
 	g.tex.info_backImage = &Mimg[6];
     glGenTextures(1, &g.tex.info_backTexture);
-     w = g.tex.info_backImage->width;
-     h = g.tex.info_backImage->height;
+    w = g.tex.info_backImage->width;
+    h = g.tex.info_backImage->height;
 	glBindTexture(GL_TEXTURE_2D, g.tex.info_backTexture);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
@@ -513,89 +514,83 @@ void init_opengl(void)
 	
 	// space bar key
 	g.tex.esc_keyImage = &Mimg[7];
-     w = g.tex.esc_keyImage->width;
-     h = g.tex.esc_keyImage->height;
+    w = g.tex.esc_keyImage->width;
+    h = g.tex.esc_keyImage->height;
 	glGenTextures(1, &g.tex.esc_keyTexture);
 	glBindTexture(GL_TEXTURE_2D, g.tex.esc_keyTexture);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	unsigned char *esc_keyData = g.tex.esc_keyImage->buildAlphaData(&Mimg[7]);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
         				GL_RGBA, GL_UNSIGNED_BYTE, esc_keyData);
     free(esc_keyData);
 
+	//arrow key
 	g.tex.arrow_keyImage = &Mimg[8];
-     w = g.tex.arrow_keyImage->width;
-     h = g.tex.arrow_keyImage->height;
+    w = g.tex.arrow_keyImage->width;
+    h = g.tex.arrow_keyImage->height;
 	glGenTextures(1, &g.tex.arrow_keyTexture);
 	glBindTexture(GL_TEXTURE_2D, g.tex.arrow_keyTexture);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	unsigned char *arrow_keyData = g.tex.arrow_keyImage->buildAlphaData(&Mimg[8]);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
         				GL_RGBA, GL_UNSIGNED_BYTE, arrow_keyData);
     free(arrow_keyData);
-   g.tex.space_barImage = &Mimg[9];
-     w = g.tex.space_barImage->width;
-     h = g.tex.space_barImage->height;
+	
+	// space bar
+   	g.tex.space_barImage = &Mimg[9];
+    w = g.tex.space_barImage->width;
+    h = g.tex.space_barImage->height;
 	glGenTextures(1, &g.tex.space_barTexture);
 	glBindTexture(GL_TEXTURE_2D, g.tex.space_barTexture);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	unsigned char *space_barData = g.tex.space_barImage->buildAlphaData(&Mimg[9]);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
         				GL_RGBA, GL_UNSIGNED_BYTE, space_barData);
     free(space_barData);
 	
+	//p key
 	g.tex.p_keyImage = &Mimg[10];
-     w = g.tex.p_keyImage->width;
-     h = g.tex.p_keyImage->height;
+    w = g.tex.p_keyImage->width;
+    h = g.tex.p_keyImage->height;
 	glGenTextures(1, &g.tex.p_keyTexture);
 	glBindTexture(GL_TEXTURE_2D, g.tex.p_keyTexture);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	unsigned char *p_keyData = g.tex.p_keyImage->buildAlphaData(&Mimg[10]);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
         				GL_RGBA, GL_UNSIGNED_BYTE, p_keyData);
     free(p_keyData);
+
+	//i key
 	g.tex.i_keyImage = &Mimg[11];
-     w = g.tex.i_keyImage->width;
-     h = g.tex.i_keyImage->height;
+    w = g.tex.i_keyImage->width;
+    h = g.tex.i_keyImage->height;
 	glGenTextures(1, &g.tex.i_keyTexture);
 	glBindTexture(GL_TEXTURE_2D, g.tex.i_keyTexture);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	unsigned char *i_keyData = g.tex.i_keyImage->buildAlphaData(&Mimg[11]);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
         				GL_RGBA, GL_UNSIGNED_BYTE, i_keyData);
     free(i_keyData);
 	
-	
+	//control menu back
 	g.tex.control_MImage = &Mimg[12];
-     w = g.tex.control_MImage->width;
-     h = g.tex.control_MImage->height;
+    w = g.tex.control_MImage->width;
+    h = g.tex.control_MImage->height;
 	glGenTextures(1, &g.tex.control_MTexture);
 	glBindTexture(GL_TEXTURE_2D, g.tex.control_MTexture);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	unsigned char *control_MData = g.tex.control_MImage->buildAlphaData(&Mimg[12]);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
         				GL_RGBA, GL_UNSIGNED_BYTE, control_MData);
     free(control_MData);
 
-
+	// bat 
 	g.tex.BatImage = &img[14];
 	w = g.tex.BatImage->width;
 	h = g.tex.BatImage->height;
@@ -603,12 +598,12 @@ void init_opengl(void)
 	glBindTexture(GL_TEXTURE_2D, g.tex.BatTexture);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-	
 	unsigned char *BatData = g.tex.BatImage->buildAlphaData(&img[14]);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
 							GL_RGBA, GL_UNSIGNED_BYTE, BatData);
 	free(BatData);
 
+	//fire balls
 	g.tex.fireImage = &img[15];
 	w = g.tex.fireImage->width;
 	h = g.tex.fireImage->height;
@@ -616,18 +611,16 @@ void init_opengl(void)
 	glBindTexture(GL_TEXTURE_2D, g.tex.fireTexture);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-	
 	unsigned char *fireData = g.tex.fireImage->buildAlphaData(&img[15]);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
 							GL_RGBA, GL_UNSIGNED_BYTE, fireData);
 	free(fireData);
 
-	
-
 	player.loadTextures(playerImages);
 }
 
-void cleanup_textures() {
+void cleanup_textures() 
+{
 	glDeleteTextures(1, &g.tex.backTexture);
     glDeleteTextures(1, &g.tex.platformTexture);
     glDeleteTextures(1, &g.tex.coinTexture);
@@ -641,6 +634,7 @@ void cleanup_textures() {
     glDeleteTextures(1, &g.tex.playerKickTexture);
     glDeleteTextures(1, &g.tex.playerMoveTexture);
     glDeleteTextures(1, &g.tex.playerScanTexture);
+	glDeleteTextures(1, &g.tex.playerHatchTexture);
     glDeleteTextures(1, &g.tex.BatTexture);
     glDeleteTextures(1, &g.tex.fireTexture);
     glDeleteTextures(1, &g.tex.playbuttonTexture);
@@ -656,91 +650,45 @@ void cleanup_textures() {
     glDeleteTextures(1, &g.tex.p_keyTexture);
     glDeleteTextures(1, &g.tex.i_keyTexture);
     glDeleteTextures(1, &g.tex.control_MTexture);
+	cleanup_fonts();
+	g.tex.backImage = nullptr;
 }
 void check_mouse(XEvent *e)
 {
-	//Did the mouse move?
-	//Was a mouse button clicked?
 	static int savex = 0;
 	static int savey = 0;
-	//
 	if (e->type == ButtonRelease) {
 		return;
 	}
 
 	if (e->type == ButtonPress) {
 		if (e->xbutton.button==1) {
-			//Left button is down
+		
 			int mousex = e->xbutton.x;
 			int mousey = g.yres - e->xbutton.y;
-            int buttonLeft =   g.xres/2 - (g.xres * 0.1);
-			int buttonRight =  g.xres/2 + (g.xres * 0.1);
-			int buttonBottom = g.yres/4 - (g.yres * 0.15);
-			int buttonTop =    g.yres/4 + (g.yres * 0.15);
-            if (mousex >=buttonLeft &&
-			mousex <= buttonRight &&
-			mousey >= buttonBottom &&
-			mousey <= buttonTop) {
-				start = true;
-				bat.resetTimer();
-			}
-			if (e->type == ButtonPress) {
-		if (e->xbutton.button==1 && g.paused) {
-			//Left button is down
-			mousex = e->xbutton.x;
-			mousey = g.yres - e->xbutton.y;
-            int minibuttonLeft =   g.xres/2 - (g.xres * 0.05);
-			int minibuttonRight =  g.xres/2 + (g.xres * 0.05);
-			int minibuttonBottom = g.yres/4 - (g.yres * 0.1);
-			int minibuttonTop =    g.yres/4 + (g.yres * 0.1);
-            if (mousex >=minibuttonLeft &&
-			mousex <= minibuttonRight &&
-			mousey >= minibuttonBottom &&
-			mousey <= minibuttonTop) {
-				g.paused = !g.paused;
-			}
-		}
-		if (e->xbutton.button==1 && g.paused && !info) {
-			//Left button is down
-			mousex = e->xbutton.x;
-			mousey = g.yres - e->xbutton.y;
-            int minibuttonLeft =   g.xres/4 - (g.xres * 0.05);
-			int minibuttonRight =  g.xres/4 + (g.xres * 0.05);
-			int minibuttonBottom = g.yres/4 - (g.yres * 0.1);
-			int minibuttonTop =    g.yres/4 + (g.yres * 0.1);
-            if (mousex >=minibuttonLeft &&
-			mousex <= minibuttonRight &&
-			mousey >= minibuttonBottom &&
-			mousey <= minibuttonTop) {
-				info = !info;
-			}
-		}
-			if(e->xbutton.button==1 && info) {
-            mousex = e->xbutton.x;
-			mousey = g.yres - e->xbutton.y;
-            int minibuttonLeft =   g.xres*3/4 - (g.xres * 0.05);
-			int minibuttonRight =  g.xres*3/4 + (g.xres * 0.05);
-			int minibuttonBottom = g.yres/8 - (g.yres * 0.1);
-			int minibuttonTop =    g.yres/8 + (g.yres * 0.1);
-            if (mousex >=minibuttonLeft &&
-			mousex <= minibuttonRight &&
-			mousey >= minibuttonBottom &&
-			mousey <= minibuttonTop) {
-				info = !info;
-			}
 			
+			//XSync(Display, 0);
 
+			if (!g.paused) {
+				check_button(START, mousex, mousey, bat);
 			}
+			if (g.paused) {
+				check_button(INFO, mousex, mousey, bat);
+				check_button(PAUSE, mousex, mousey, bat);
+			}
+			if (info) {
+				check_button(CLOSE_INFO, mousex, mousey, bat);
 			}
 		}
 	}
-	
+
 	if (savex != e->xbutton.x || savey != e->xbutton.y) {
 		//Mouse moved
 		savex = e->xbutton.x;
 		savey = e->xbutton.y;
 	}
 }
+
 
 int check_keys(XEvent *e)
 {
@@ -783,10 +731,8 @@ void physics()
 	if (g.spawnAnimation) {
 		return;
 	}
-
-	//	
-	if(!g.paused) 
-	{
+	
+	if (!g.paused) {
 		g.tex.xc[0] += scrollSpeed;
 		g.tex.xc[1] += scrollSpeed;
 		platform.updatePlatforms(g.xres, g.yres, deltaTime);
@@ -797,7 +743,7 @@ void physics()
 		bat.shootFireball();
 		bat.checkFireCollision(player);
 		bat.updateSwooping(deltaTime);
-		//std::cout<< "updating "<< bat.fireballs.size() << std::endl;
+
 		for(auto& fireball : bat.fireballs) {
 			fireball.update();
 		}
@@ -806,10 +752,8 @@ void physics()
 	
 }
 
-void render()
+void render() 
 {
-	
-	
 	glClear(GL_COLOR_BUFFER_BIT);
 	glEnable(GL_TEXTURE_2D);
 	glColor3f(1.0, 1.0, 1.0);
@@ -824,6 +768,7 @@ void render()
 	} else {
     	heightScale = textureAspect / screenAspect;
 	}
+
 	glPushMatrix();
 	glBindTexture(GL_TEXTURE_2D, g.tex.backTexture);	
 	glBegin(GL_QUADS);
@@ -851,40 +796,32 @@ void render()
 	glColor4ub(255,255,255,255);
     coin.renderCoins();
 	glPopMatrix();
-
+	
 	glPushMatrix();
 	glBindTexture(GL_TEXTURE_2D, player.getTexture());
-	//glEnable(GL_ALPHA_TEST);
-	//glAlphaFunc(GL_GREATER, 0.0f);
 	glColor4ub(255,255,255,255);
     player.render();
 	bat.render();
 	glPopMatrix();
-	//std::cout<< "Number of fireballs" << bat.fireballs.size() << std::endl;
 	
 	glBindTexture(GL_TEXTURE_2D, g.tex.fireTexture);
 	glEnable(GL_BLEND);
 	glEnable(GL_ALPHA_TEST);
 	glEnable(GL_TEXTURE_2D);
-	for(auto& fireball : bat.fireballs) {
-	fireball.render_fire();
+	
+	for (auto& fireball : bat.fireballs) {
+		fireball.render_fire();
 	}
    
     glDisable(GL_BLEND);
     glDisable(GL_ALPHA_TEST);
 	glDisable(GL_TEXTURE_2D);
-
-    //render_menu();	
-    //render_Pmenu();
     glPopMatrix();
 
-	//
 	if (start && g.spawnAnimation) {
 		glEnable(GL_BLEND);
 		glEnable(GL_TEXTURE_2D);
-		//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-glEnable(GL_ALPHA_TEST);
-//glAlphaFunc(GL_GREATER, 0.0f);
+		glEnable(GL_ALPHA_TEST);
 
 		int totalFrames = 4;
 		float frameWidth = 1.0f / totalFrames;
@@ -902,34 +839,33 @@ glEnable(GL_ALPHA_TEST);
 			glTexCoord2f(tx1, 0.0f); glVertex2f(-player.getWidth() / 2, player.getHeight() / 2);
 		glEnd();
 		glPopMatrix();
-glDisable(GL_BLEND);
-glDisable(GL_TEXTURE_2D);
-glDisable(GL_ALPHA_TEST);
+		glDisable(GL_BLEND);
+		glDisable(GL_TEXTURE_2D);
+		glDisable(GL_ALPHA_TEST);
 		struct timespec now;
 		clock_gettime(CLOCK_REALTIME, &now);
 		double timeDiff = timers.timeDiff(&g.hatchTime, &now);
+		
 		if (timeDiff > 0.3) {
 			g.hatchFrame++;
 			timers.recordTime(&g.hatchTime);
 		}
-
 		if (g.hatchFrame >= totalFrames) {
 			g.hatchFrame = 0;
 			g.spawnAnimation = false;
 		}
-	
 		if (start && g.gracePeriod > 0.0f) {
-		glBindTexture(GL_TEXTURE_2D, 0);
-    	glEnable(GL_TEXTURE_2D);
-		Rect r;
-		initialize_fonts();
-		r.bot = g.yres / 2;
-		r.left = g.xres /2 - 40;
-		r.center = 1;
-		ggprint10(&r, 16, 0x00000000, "Get Ready!");
-		glDisable(GL_TEXTURE_2D);
-		return; 
-	}
+			glBindTexture(GL_TEXTURE_2D, 0);
+    		glEnable(GL_TEXTURE_2D);
+			Rect r;
+			initialize_fonts();
+			r.bot = g.yres / 2;
+			r.left = g.xres /2 - 40;
+			r.center = 1;
+			ggprint10(&r, 16, 0x00000000, "Get Ready!");
+			glDisable(GL_TEXTURE_2D);
+			return; 
+		}
 	}	
 	
 	render_menu();
