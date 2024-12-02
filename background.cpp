@@ -726,7 +726,7 @@ void check_mouse(XEvent *e)
 			if (info) {
 				check_button(CLOSE_INFO, mousex, mousey, bat);
 			}
-            
+            if (g.isGameOver){
             //Quit button
             int quitButtonLeft = g.xres / 2 - (g.xres * 0.05);
             int quitButtonRight = g.xres / 2 + (g.xres * 0.05);
@@ -752,6 +752,7 @@ void check_mouse(XEvent *e)
                 start = true;
                 return;
             }
+			}
         }
 	}
 

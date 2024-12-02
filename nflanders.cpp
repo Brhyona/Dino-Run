@@ -80,7 +80,7 @@ const float DAMAGE_INTERVAL = 1.0f;
 bool gameOver = false;
 
 void render_GameOverScreen() {
-    if (g.isGameOver) {}
+    if (g.isGameOver) {
    glEnable(GL_TEXTURE_2D);
    glClear(GL_COLOR_BUFFER_BIT);
    glEnable(GL_ALPHA_TEST);
@@ -146,8 +146,9 @@ void render_GameOverScreen() {
    glVertex2i(g.xres / 4 + Rbutton_width, g.yres / 4 - Rbutton_height);
    glEnd();
 
-
+    
    glPopMatrix();
+}
 }
 
 Health health(100);

@@ -431,6 +431,7 @@ void Player::handleFalling(const Platform& platforms) {
     if (this->position[1] < 0) {
         // Logic when the player falls off the screen
         std::cout << "Player has fallen off the screen and died." << std::endl;
+        g.isGameOver = true;
         playerHealth.TakeDamage(100); // Apply damage
         playerHealth.IsDead();       // Mark player as dead if necessary
     }
