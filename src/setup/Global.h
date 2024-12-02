@@ -124,6 +124,9 @@ public:
 	Image *fireImage;
 	GLuint fireTexture;
 
+    Image *enemyRunImage;
+    GLuint enemyRunTexture;
+
 	//Traps
 	Image *arrowImage;
 	GLuint arrowTexture;
