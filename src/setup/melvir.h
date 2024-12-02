@@ -10,7 +10,7 @@
 #include <GL/glx.h>
 
 class Platform;
-
+class Sound;
 
 enum PlayerState {
     AVOID,
@@ -36,16 +36,13 @@ private:
     PlayerState currentState;
     float x, y, width, height, frameDuration;
     int frameIndex = 0;
-    //Health playerHealth;
+    Health playerHealth;
     bool dashing;
     bool dashCompleted;
 
 public:
     Player(Image* img[NUM_STATES], float x, float y, int w, int h);
     Hitbox getPlayerHitbox() const { return this->hitbox; }
-    //float getX() const{ return x;}
-    //float getY() const {return y;}
-    //Player(Image* img[NUM_STATES], float x, float y, int w, int h, int max_health);
     GLuint getTexture();
     float getX() const;
     float getY() const;
@@ -55,22 +52,22 @@ public:
     void updatePlayer(float deltaTime);
     void updateAnimationTimers();
     void triggerDash(int key);
-    void handleInput(int key);
-    void handleFalling(const Platform& platforms);
-    void healthMeter();
     void drawHeart(float x, float y, float size, int filledSegments);
+    void healthMeter();
+    
+    #ifdef USE_OPENAL_SOUND
+    void handleInput(int key, Sound &sound);
+    void handleFalling(const Platform& platforms, Sound &sound);
+    #endif
+    
+    float getWidth() const { return width;}
+    float getHeight() const { return height;}
+    
+    void takeDamage(int damage) {return playerHealth.TakeDamage(damage);}
+    int getCurrentHealth() const {return playerHealth.GetCurrentHealth();}
+    bool isDead() const {return playerHealth.IsDead();} 
     void render();
-     Health playerHealth;
-     const Hitbox& getHitbox() const { return hitbox;}
     ~Player();
-//
-    float getWidth() const {
-        return width;
-    }
-
-    float getHeight() const {
-        return height;
-    }
 };
 
 #endif // MELVIR_H

@@ -8,13 +8,15 @@
 #include <iostream>
 #include <cmath>
 
-constexpr float MOVE_SPEED = 6.0f;
-constexpr float JUMP_SPEED = 10.0f;
+constexpr float MOVE_SPEED = 9.0f;
+constexpr float JUMP_SPEED = 8.0f;
 constexpr float DASH_SPEED = 12.0f;
-constexpr float GRAVITY = 9.0f;
+constexpr float GRAVITY = 8.8f;
 constexpr float DASH_THRESHOLD = 0.30f;
 constexpr float PI = 3.14159265358979323846f;
 bool facingLeft = false;
+bool fallingSoundPlayed = false;
+bool bonesSoundPlayed = false;
 
 const int framesPerAction[NUM_STATES] = {
     3, // AVOID
@@ -80,6 +82,10 @@ void Player::loadTextures(Image* img[NUM_STATES]) {
 }
 
 void Player::updateState(PlayerState newState) {
+     if (currentState != newState) {
+        currentState = newState;
+    }
+    /*
     if (g.spawnAnimation && currentState != HATCH) {
         currentState = HATCH;
     } else if (!g.spawnAnimation && currentState == HATCH) {
@@ -87,6 +93,7 @@ void Player::updateState(PlayerState newState) {
     } else if (currentState != newState) {
         currentState = newState;
     }
+    */
 }
 
 void Player::updateAnimationTimers() {
@@ -145,51 +152,40 @@ void Player::triggerDash(int key) {
     }
 }
 
-void Player::handleInput(int key) {
+void Player::handleInput(int key, Sound &sound) {
+    
     this->velocity[0] = 0.0f;
-
-    if (key == XK_Up) {
-        g.jumping = true;
-        if (this->velocity[1] == 0.0f) { 
-            updateState(JUMP);
-            this->velocity[1] = JUMP_SPEED;
-
-            // Add slight boost if moving while jumping
-            if (g.moving) {
-                this->velocity[0] = (facingLeft ? -MOVE_SPEED : MOVE_SPEED) * 1.0f;   
-            }
-        }
-    } else if (key == XK_Left) {
-        g.moving = true;
-        this->velocity[0] = -MOVE_SPEED; 
-    } else if (key == XK_Right) {
-        g.moving = true;
-        this->velocity[0] = MOVE_SPEED; 
-    } else if (key == XK_Up) {
-        if (this->velocity[1] == 0.0f) { 
-            g.jumping = true;
-            updateState(JUMP);
-            this->velocity[1] = JUMP_SPEED;
-            this->position[1] += this->velocity[1] * 0.016f;      // Add horizontal boost during jump
-            std::cout << "Player jumped: velocityY=" << this->velocity[1]
-                  << ", positionY=" << this->position[1] << std::endl;
-        }
-    } else {
-        this->velocity[0] = 0.0f; 
-    }
+//    this->velocity[1] = 0.0f;
 
     if(key == XK_Up){
         g.jumping = true;
         if (this->velocity[1] == 0.0f) { 
-            g.jumping = true;
             updateState(JUMP);
             this->velocity[1] = JUMP_SPEED;
-        } 
+            
+            #ifdef USE_OPENAL_SOUND
+            sound.playSound(g.alSourceJump);
+            if (alGetError() != AL_NO_ERROR) {
+                std::cout << "Sound play error!" << std::endl;
+            }
+            #endif
+            
+            if (g.moving) {
+                this->velocity[0] = (facingLeft ? -MOVE_SPEED : MOVE_SPEED) * 10.0f;   // Slight boost when running
+            }
+            //std::cout << "Player jumped: velocityY=" << this->velocity[1]
+            //      << ", positionY=" << this->position[1] << std::endl;
+        }
+    } else if (key == XK_Left) {
+        g.moving = true;
+        this->velocity[0] = MOVE_SPEED; 
+    } else if (key == XK_Right) {
+        g.moving = true;
+        this->velocity[0] = MOVE_SPEED; 
     } else {
         this->velocity[0] = 0.0f;
-    }
+    } 
 
-    // Handle actions based on the key
     switch (key) {
         case XK_Left: 
             updateState(MOVE);
@@ -203,6 +199,7 @@ void Player::handleInput(int key) {
             break;
         case XK_Up:
             updateState(JUMP);
+            this->position[1] += MOVE_SPEED;
             break;
         case XK_Down: 
             break;
@@ -210,11 +207,6 @@ void Player::handleInput(int key) {
 }
 
 void Player::updatePlayer(float deltaTime) {
-
-    if (g.jumping) {
-        float gravityFactor = 0.5f;
-        this->velocity[1] -= GRAVITY * gravityFactor * deltaTime;
-    }
     
     this->position[0] += this->velocity[0] * deltaTime;
     this->position[1] += this->velocity[1] * deltaTime;
@@ -223,11 +215,10 @@ void Player::updatePlayer(float deltaTime) {
     this->hitbox.x = this->position[0] - this->width / 2;
     this->hitbox.y = this->position[1] - this->height / 2;
 
-    // Debugging
-    std::cout << "Updated player: x=" << this->position[0]
-              << ", y=" << this->position[1]
-              << ", velocityX=" << this->velocity[0]
-              << ", velocityY=" << this->velocity[1] << std::endl;
+    //std::cout << "Updated player: x=" << this->position[0]
+     //         << ", y=" << this->position[1]
+     //         << ", velocityX=" << this->velocity[0]
+     //         << ", velocityY=" << this->velocity[1] << std::endl;
     
     updateHitbox();
 }
@@ -288,8 +279,8 @@ void Player::render() {
     glEnd();
 
     glPopMatrix();
-    glDisable(GL_BLEND);
     healthMeter();
+    glDisable(GL_BLEND);
 }
 
 void Player::drawHeart(float x, float y, float size, int filledSegments) 
@@ -348,14 +339,12 @@ void Player::healthMeter()
     int fullHearts = playerHealth.GetCurrentHealth() / 10;
     float remainingHealth = playerHealth.GetCurrentHealth() % 10;
 
-    // Debugging output (optional, can be removed later)
-    // std::cout << "Rendering " << maxHearts << " hearts. Full: " << fullHearts 
-    //           << ", Remaining Health: " << remainingHealth << std::endl;
+    //std::cout << "Rendering " << maxHearts << " hearts. Full: " << fullHearts 
+    //          << ", Remaining Health: " << remainingHealth << std::endl;
 
     glDisable(GL_TEXTURE_2D);
     glEnable(GL_BLEND);
 
-    // Switch to orthographic projection for 2D rendering
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
     glLoadIdentity();
@@ -364,7 +353,7 @@ void Player::healthMeter()
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
     glLoadIdentity();
-
+ 
     for (int i = 0; i < maxHearts; i++) {
         float x = startX + i * (heartSize + gap);
         float y = startY;
@@ -378,8 +367,6 @@ void Player::healthMeter()
             drawHeart(x, y, heartSize, 0); // Empty heart
         }
     }
-
-    // Restore projection and modelview matrices
     glMatrixMode(GL_PROJECTION);
     glPopMatrix();
     glMatrixMode(GL_MODELVIEW);
@@ -389,7 +376,7 @@ void Player::healthMeter()
     glDisable(GL_BLEND); 
 }
 
-void Player::handleFalling(const Platform& platforms) {
+void Player::handleFalling(const Platform& platforms, Sound &sound) {
     bool onPlatform = false;
 
     PlatformNode* temp = platforms.getPlatformHead();
@@ -409,36 +396,46 @@ void Player::handleFalling(const Platform& platforms) {
                 this->position[1] = platformHitbox.y + platformHitbox.height;
                 this->velocity[1] = 0.0f; 
             }
+            //std::cout << "Player landed on platform at y=" << this->position[1] << std::endl;
             break;
         }
         temp = temp->next;
     }
 
     if (!onPlatform) {
-        this->velocity[1] -= GRAVITY * 0.016f; // Simulate gravity with deltaTime
+        this->velocity[1] -= GRAVITY * 0.016f;
     }
-
-    this->position[1] += this->velocity[1]; // Update player position based on velocity
+        
+    this->position[1] += this->velocity[1]; 
 
     if (onPlatform) {
-        g.jumping = false; // Stop jumping when the player lands on a platform
+        g.jumping = false;
     }
 
-        if (this->position[1] < 0) {
-            //playerHealth.isDead = true; // Mark the player as dead
-            //std::cout << "Player has fallen off the screen and died." << std::endl;
-        }
+    if (!g.jumping) {
+        //std::cout << "Player is falling!" << std::endl;
+    }
+
     if (this->position[1] < 0) {
-        // Logic when the player falls off the screen
+        if (!fallingSoundPlayed) {
+            #ifdef USE_OPENAL_SOUND
+            sound.playSound(g.alSourceFalling);
+            #endif
+            fallingSoundPlayed = true; // Mark falling sound as played
+        } else if (!bonesSoundPlayed) {
+            #ifdef USE_OPENAL_SOUND
+            sound.playSound(g.alSourceBones);
+            #endif
+            bonesSoundPlayed = true; // Mark bones sound as played
+        }
         std::cout << "Player has fallen off the screen and died." << std::endl;
-        g.isGameOver = true;
-        playerHealth.TakeDamage(100); // Apply damage
-        playerHealth.IsDead();       // Mark player as dead if necessary
+        playerHealth.TakeDamage(100);
+        playerHealth.IsDead();
+        
     }
 
-    updateHitbox(); // Ensure the hitbox reflects the updated position
+    updateHitbox(); 
 }
 
 float Player::getX() const { return position[0]; }
 float Player::getY() const { return position[1]; }
-
