@@ -623,42 +623,42 @@ void init_opengl(void)
 	free(fireData);
 
     //GameOverTitle
-   g.tex.GameOverTitleImage = &Mimg[14];
+   g.tex.GameOverTitleImage = &Mimg[13];
    glGenTextures(1, &g.tex.GameOverTitleTexture);
     w = g.tex.GameOverTitleImage->width;
     h = g.tex.GameOverTitleImage->height;
    glBindTexture(GL_TEXTURE_2D, g.tex.GameOverTitleTexture);
    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-   unsigned char * GameOverTitleData = g.tex.GameOverTitleImage->buildAlphaData(&Mimg[14]);
+   unsigned char * GameOverTitleData = g.tex.GameOverTitleImage->buildAlphaData(&Mimg[13]);
    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
                        GL_RGBA, GL_UNSIGNED_BYTE, GameOverTitleData);
    free(GameOverTitleData);
 
 
    //Quit button
-   g.tex.quitButtonImage = &Mimg[15];
+   g.tex.quitButtonImage = &Mimg[14];
    glGenTextures(1, &g.tex.quitButtonTexture);
     w = g.tex.quitButtonImage->width;
     h = g.tex.quitButtonImage->height;
    glBindTexture(GL_TEXTURE_2D, g.tex.quitButtonTexture);
    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-   unsigned char *quitButtonData = g.tex.quitButtonImage->buildAlphaData(&Mimg[15]);
+   unsigned char *quitButtonData = g.tex.quitButtonImage->buildAlphaData(&Mimg[14]);
    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
                        GL_RGBA, GL_UNSIGNED_BYTE, quitButtonData);
    free(quitButtonData);
 
 
    //Return Button
-   g.tex.restartButtonImage = &Mimg[16];
+   g.tex.restartButtonImage = &Mimg[15];
    glGenTextures(1, &g.tex.restartButtonTexture);
     w = g.tex.restartButtonImage->width;
     h = g.tex.restartButtonImage->height;
    glBindTexture(GL_TEXTURE_2D, g.tex.restartButtonTexture);
    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-   unsigned char *restartButtonData = g.tex.restartButtonImage->buildAlphaData(&Mimg[16]);
+   unsigned char *restartButtonData = g.tex.restartButtonImage->buildAlphaData(&Mimg[15]);
    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
                        GL_RGBA, GL_UNSIGNED_BYTE, restartButtonData);
    free(restartButtonData);
