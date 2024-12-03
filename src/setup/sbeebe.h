@@ -11,6 +11,7 @@
 
 enum EnemyAnimation {
     E_RUN,
+    E_WHIP,
     NUM_EVIL_STATES
 };
 
@@ -19,27 +20,30 @@ class Platform;
 
 class Evil {
     private:
-    Player& player;
-    GLuint texture;
+    GLuint texture[NUM_EVIL_STATES];
     EnemyAnimation currentState;
-    float x, y;   // Archeologist's x and y position
-    float width, height; // archeologist's width and height
-    int evilcurrentFrame;    // Current Frame
-    float animationTimer; // Timer for frame updates
-    void follow(); //Position in relation to the player
+    Hitbox archHitbox;
+    //Vec position;
+    //Vec velocity;
+    float sx, sy;   // Archeologist's x and y position
+    float sw, sh, frameduration; // archeologist's width and height
+    int evilcurrentFrame; // Current Frame
+    int framedex = 0;
 
     public:
-    Evil(Image* img, float sx, float sy, float sw, float sh, Player& p);
-    ~Evil();
+    Evil(Image* img[NUM_EVIL_STATES], float sx, float sy, float sw, float sh);
 
-    void updateAnimation();
+    void updateAnimation(EnemyAnimation newstate);
+    void updateAnimationTimers();
+    void updateEnemy(float deltaTime);
     void movement();
     void render();   // Render the enemy sprite
-    void getTexture() const;
+    GLuint getTexture();
     void setPosition(float newX, float newY);
-    void setMoveSpeed(float speed);
-    float getX() const;
-    float getY() const;
+    //void setMoveSpeed(float speed);
+    void loadTextures(Image* img[NUM_EVIL_STATES]);
+    void follow(int x, int y, float deltatime, Player &player); //Position in relation to the player
+    ~Evil();
 };
 
 

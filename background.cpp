@@ -19,8 +19,9 @@
 #include "src/setup/melvir.h"
 #include "src/setup/bthomas.h"
 #include "src/setup/health.h"
+#include "src/setup/sbeebe.h"
 
-Image img[19]= {
+Image img[21]= {
 	"src/assets/textures/menu/background.png",
 	"src/assets/textures/ground/platform.png",
 	"src/assets/textures/ground/coin.png",
@@ -39,15 +40,17 @@ Image img[19]= {
 	"src/assets/textures/enemies/fire_ball.png",
 	"src/assets/textures/ground/fallingPlatform.png",
 	"src/assets/textures/traps/arrow.png",
-	"src/assets/textures/traps/fireTrap.png"
+	"src/assets/textures/traps/fireTrap.png",
+    "src/assets/textures/enemies/evil.png", 
+    "src/assets/textures/enemies/whip.png"
 };
 
 Image Mimg[13] {
 	"src/assets/textures/menu/pausedmenu.png",
 	"src/assets/textures/menu/playbuttonMini.png",
-	"src/assets/textures/menu/hover.png",
-	"src/assets/textures/menu/title.png",
-	"src/assets/textures/menu/shadow.png",
+	"src/assets/textures/menu/Hover.png",
+	"src/assets/textures/menu/Title.png",
+	"src/assets/textures/menu/Shadow.png",
 	"src/assets/textures/menu/nextbutton.png",
 	"src/assets/textures/menu/info_background.png",
 	"src/assets/textures/menu/keys/esc_key.png",
@@ -72,6 +75,11 @@ Image* playerImages[NUM_STATES] = {
 	&img[13],	
 };
 
+Image* enemyImages[NUM_EVIL_STATES] = {
+    &img[19],
+    &img[20],
+};
+
 Global g;
 
 Platform platform(&img[1], 320.0f, 100.0f, 641.0f, 231.0f);
@@ -80,6 +88,7 @@ Player player(playerImages, 320.0f, 120.0f, 64.0f, 64.0f);
 Bat bat(&img[13],320.0f,240.0f,32.0f,32.0f, player);
 Arrow arrow(&img[15], 0.0f, 0.0f, 120.0f, 20.0f);
 FireTrap firetrap(&img[16], 0.0f, 0.0f, 32.0f, 80.0f);
+Evil evil(enemyImages, 120.0f, 120.0f, 96.0f, 70.0f);
 
 float scrollSpeed = 0.0001;
 extern bool start;
@@ -676,6 +685,42 @@ void init_opengl(void)
 	free(fireTrapData);
 
 	player.loadTextures(playerImages);
+
+    //Archeolgist
+	g.tex.enemyRunImage = &img[19];
+	w = g.tex.enemyRunImage->width;
+	h = g.tex.enemyRunImage->height;
+	glGenTextures(1, &g.tex.enemyRunTexture); 
+	glBindTexture(GL_TEXTURE_2D, g.tex.enemyRunTexture);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,
+                                                GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,
+                                                GL_NEAREST);
+	
+	unsigned char *enemyRunData = 
+                    g.tex.enemyRunImage->buildAlphaData(&img[19]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
+					GL_RGBA, GL_UNSIGNED_BYTE, enemyRunData);
+	free(enemyRunData);
+	
+    //Whip
+    g.tex.enemyWhipImage = &img[20];
+	w = g.tex.enemyWhipImage->width;
+	h = g.tex.enemyWhipImage->height;
+	glGenTextures(1, &g.tex.enemyWhipTexture); 
+	glBindTexture(GL_TEXTURE_2D, g.tex.enemyWhipTexture);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,
+                                                GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,
+                                                GL_NEAREST);
+	
+	unsigned char *enemyWhipData = 
+                    g.tex.enemyWhipImage->buildAlphaData(&img[20]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
+					GL_RGBA, GL_UNSIGNED_BYTE, enemyWhipData);
+	free(enemyWhipData);
+
+    evil.loadTextures(enemyImages);
 }
 
 void cleanup_textures() {
@@ -862,13 +907,17 @@ void physics()
 			firetrap.spawnFireTrap(g.xres, g.yres, platform, player);
             fireTrapCoolDown = 3.0f; 
         }
+
         firetrap.updateFire(g.xres, g.yres, deltaTime, player);
 		arrow.updateArrow(g.xres, g.yres, deltaTime, player);
-		
+        evil.follow(playerX, playerY, deltaTime, player);
+
 		#ifdef USE_OPENAL_SOUND
 		coin.checkCoinCollision(player, sound);
 		player.handleFalling(platform, sound);
 		#endif
+
+        //evil.updateEnemy(deltaTime);
 
     	bat.updateTimer(deltaTime);
 		bat.shootFireball();
@@ -930,12 +979,13 @@ void render()
 
 	glPushMatrix();
 	glBindTexture(GL_TEXTURE_2D, player.getTexture());
-	//glEnable(GL_ALPHA_TEST);
-	//glAlphaFunc(GL_GREATER, 0.0f);
+	glEnable(GL_ALPHA_TEST);
+	glAlphaFunc(GL_GREATER, 0.0f);
 	glColor4ub(255,255,255,255);
     player.render();
 	bat.render();
-	glPopMatrix();
+	evil.render();
+    glPopMatrix();
 	//std::cout<< "Number of fireballs" << bat.fireballs.size() << std::endl;
 	
 	glBindTexture(GL_TEXTURE_2D, g.tex.fireTexture);

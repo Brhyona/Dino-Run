@@ -126,6 +126,8 @@ public:
 
     Image *enemyRunImage;
     GLuint enemyRunTexture;
+    Image *enemyWhipImage;
+    GLuint enemyWhipTexture;
 
 	//Traps
 	Image *arrowImage;
@@ -145,6 +147,7 @@ class Global {
 public:
 	int xres, yres, paused, coin, coinFrame, fireTrapFrame;
 	int avoiding, biting, dashing, dead, hurting, idel, jumping, kicking, moving, scanning, playerFrame;
+    int enemyrun, enemywhip, enemyframe;
 	Texture tex;
 	struct timespec coinTime;
 	struct timespec fireTrapTime;
@@ -158,6 +161,8 @@ public:
 	struct timespec KickTime;
 	struct timespec MoveTime;
 	struct timespec ScanTime;
+    struct timespec EnemyRunTime;
+    struct timespec EnemyWhipTime;
 	double delay;
 
 	float gracePeriod = 3.0f;
@@ -176,7 +181,7 @@ public:
 	
 	Global() {
 		xres=550, yres=400, paused=0, coin=0, coinFrame=0, fireTrapFrame=0, delay = 0.15;
-		avoiding=0, biting=0, dashing=0, dead=0, hurting=0, idel=0, jumping=0, kicking=0, moving=0, scanning=0, playerFrame=0;
+		avoiding=0, biting=0, dashing=0, dead=0, hurting=0, idel=0, jumping=0, kicking=0, moving=0, scanning=0, playerFrame=0, enemyrun=0, enemywhip=0;
 
 		timers.recordTime(&coinTime);
 		tex.coinImage=nullptr;
@@ -202,6 +207,10 @@ public:
 		tex.playerMoveImage=nullptr;
 		timers.recordTime(&ScanTime);
 		tex.playerScanImage=nullptr;
+		timers.recordTime(&EnemyRunTime);
+		tex.enemyRunImage=nullptr;
+		timers.recordTime(&EnemyWhipTime);
+		tex.enemyWhipImage=nullptr;
 	}
 	struct {
 float x;
