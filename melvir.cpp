@@ -450,6 +450,7 @@ void Player::handleFalling(const Platform& platforms, Sound &sound) {
             bonesSoundPlayed = true; // Mark bones sound as played
         }
         std::cout << "Player has fallen off the screen and died." << std::endl;
+        g.isGameOver = true;
         playerHealth.TakeDamage(100);
         playerHealth.IsDead();
         

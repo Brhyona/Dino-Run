@@ -149,6 +149,8 @@ public:
 	int avoiding, biting, dashing, dead, hurting, idel, jumping, kicking, moving, scanning, playerFrame;
     int enemyrun, enemywhip, enemyframe;
 	Texture tex;
+	bool isGameOver = false;
+	
 	struct timespec coinTime;
 	struct timespec fireTrapTime;
 	struct timespec AvoidTime;
@@ -182,6 +184,7 @@ public:
 	Global() {
 		xres=550, yres=400, paused=0, coin=0, coinFrame=0, fireTrapFrame=0, delay = 0.15;
 		avoiding=0, biting=0, dashing=0, dead=0, hurting=0, idel=0, jumping=0, kicking=0, moving=0, scanning=0, playerFrame=0, enemyrun=0, enemywhip=0;
+		isGameOver = false;
 
 		timers.recordTime(&coinTime);
 		tex.coinImage=nullptr;
@@ -223,4 +226,5 @@ float height;
 };
 
 extern Global g;
+extern void render_GameOverScreen();
 #endif //GLOBAL_H

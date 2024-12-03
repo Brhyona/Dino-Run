@@ -45,7 +45,7 @@ Image img[21]= {
     "src/assets/textures/enemies/whip.png"
 };
 
-Image Mimg[13] {
+Image Mimg[16] {
 	"src/assets/textures/menu/pausedmenu.png",
 	"src/assets/textures/menu/playbuttonMini.png",
 	"src/assets/textures/menu/Hover.png",
@@ -58,7 +58,10 @@ Image Mimg[13] {
 	"src/assets/textures/menu/keys/space_bar.png",
 	"src/assets/textures/menu/keys/p_key.png",
 	"src/assets/textures/menu/keys/i_key.png",
-	"src/assets/textures/menu/keys/game_controls.png"
+	"src/assets/textures/menu/keys/game_controls.png",
+	"src/assets/textures/menu/GameOverTitle.png",
+    "src/assets/textures/menu/Quit.png",
+    "src/assets/textures/menu/Restart.png"
 };
 
 Image* playerImages[NUM_STATES] = {
@@ -93,9 +96,14 @@ Evil evil(enemyImages, 120.0f, 120.0f, 96.0f, 70.0f);
 float scrollSpeed = 0.0001;
 extern bool start;
 extern bool info;
+extern bool gameOver;
 extern void render_menu();
 extern void render_Pmenu();
 extern void render_controlInfo();
+extern void render_GameOverScreen();
+
+void cleanup_textures();
+extern void check_button(ButtonType type, int mousex, int mousey, Bat& bat);
 
 class X11_wrapper {
 private:
@@ -215,7 +223,7 @@ int main()
 	#endif
 
 	cleanup_textures();
-	cleanup_fonts();
+	//cleanup_fonts();
 	x11.cleanupXWindows();
 	return 0;
 }
@@ -616,6 +624,45 @@ void init_opengl(void)
         				GL_RGBA, GL_UNSIGNED_BYTE, control_MData);
     free(control_MData);
 
+	
+	   //GameOverTitle
+   g.tex.GameOverTitleImage = &Mimg[13];
+   glGenTextures(1, &g.tex.GameOverTitleTexture);
+    w = g.tex.GameOverTitleImage->width;
+    h = g.tex.GameOverTitleImage->height;
+   glBindTexture(GL_TEXTURE_2D, g.tex.GameOverTitleTexture);
+   glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+   glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+   unsigned char * GameOverTitleData = g.tex.GameOverTitleImage->buildAlphaData(&Mimg[13]);
+   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
+                       GL_RGBA, GL_UNSIGNED_BYTE, GameOverTitleData);
+   free(GameOverTitleData);
+   
+      //Quit button
+   g.tex.quitButtonImage = &Mimg[14];
+   glGenTextures(1, &g.tex.quitButtonTexture);
+    w = g.tex.quitButtonImage->width;
+    h = g.tex.quitButtonImage->height;
+   glBindTexture(GL_TEXTURE_2D, g.tex.quitButtonTexture);
+   glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+   glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+   unsigned char *quitButtonData = g.tex.quitButtonImage->buildAlphaData(&Mimg[14]);
+   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
+                       GL_RGBA, GL_UNSIGNED_BYTE, quitButtonData);
+   free(quitButtonData);
+   
+     //Return Button
+   g.tex.restartButtonImage = &Mimg[15];
+   glGenTextures(1, &g.tex.restartButtonTexture);
+    w = g.tex.restartButtonImage->width;
+    h = g.tex.restartButtonImage->height;
+   glBindTexture(GL_TEXTURE_2D, g.tex.restartButtonTexture);
+   glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+   glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+   unsigned char *restartButtonData = g.tex.restartButtonImage->buildAlphaData(&Mimg[15]);
+   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
+                       GL_RGBA, GL_UNSIGNED_BYTE, restartButtonData);
+   free(restartButtonData);
 
 	g.tex.BatImage = &img[14];
 	w = g.tex.BatImage->width;
@@ -752,86 +799,43 @@ void cleanup_textures() {
     glDeleteTextures(1, &g.tex.p_keyTexture);
     glDeleteTextures(1, &g.tex.i_keyTexture);
     glDeleteTextures(1, &g.tex.control_MTexture);
+	//	cleanup_fonts();
+	//	g.tex.backImage = nullptr;
 }
 
 void check_mouse(XEvent *e)
 {
-	//Did the mouse move?
-	//Was a mouse button clicked?
-	static int savex = 0;
-	static int savey = 0;
-	//
-	if (e->type == ButtonRelease) {
-		return;
-	}
+    static int savex = 0;
+    static int savey = 0;
+    if (e->type == ButtonRelease) {
+        return;
+    }
 
-	if (e->type == ButtonPress) {
-		if (e->xbutton.button==1) {
-			//Left button is down
-			int mousex = e->xbutton.x;
-			int mousey = g.yres - e->xbutton.y;
-            int buttonLeft =   g.xres/2 - (g.xres * 0.1);
-			int buttonRight =  g.xres/2 + (g.xres * 0.1);
-			int buttonBottom = g.yres/4 - (g.yres * 0.15);
-			int buttonTop =    g.yres/4 + (g.yres * 0.15);
-            if (mousex >=buttonLeft &&
-			mousex <= buttonRight &&
-			mousey >= buttonBottom &&
-			mousey <= buttonTop) {
-				start = true;
-				bat.resetTimer();
-			}
-			if (e->type == ButtonPress) {
-		if (e->xbutton.button==1 && g.paused) {
-			//Left button is down
-			mousex = e->xbutton.x;
-			mousey = g.yres - e->xbutton.y;
-            int minibuttonLeft =   g.xres/2 - (g.xres * 0.05);
-			int minibuttonRight =  g.xres/2 + (g.xres * 0.05);
-			int minibuttonBottom = g.yres/4 - (g.yres * 0.1);
-			int minibuttonTop =    g.yres/4 + (g.yres * 0.1);
-            if (mousex >=minibuttonLeft &&
-			mousex <= minibuttonRight &&
-			mousey >= minibuttonBottom &&
-			mousey <= minibuttonTop) {
-				g.paused = !g.paused;
-			}
-		}
-		if (e->xbutton.button==1 && g.paused && !info) {
-			//Left button is down
-			mousex = e->xbutton.x;
-			mousey = g.yres - e->xbutton.y;
-            int minibuttonLeft =   g.xres/4 - (g.xres * 0.05);
-			int minibuttonRight =  g.xres/4 + (g.xres * 0.05);
-			int minibuttonBottom = g.yres/4 - (g.yres * 0.1);
-			int minibuttonTop =    g.yres/4 + (g.yres * 0.1);
-            if (mousex >=minibuttonLeft &&
-			mousex <= minibuttonRight &&
-			mousey >= minibuttonBottom &&
-			mousey <= minibuttonTop) {
-				info = !info;
-			}
-		}
-			if(e->xbutton.button==1 && info) {
-            mousex = e->xbutton.x;
-			mousey = g.yres - e->xbutton.y;
-            int minibuttonLeft =   g.xres*3/4 - (g.xres * 0.05);
-			int minibuttonRight =  g.xres*3/4 + (g.xres * 0.05);
-			int minibuttonBottom = g.yres/8 - (g.yres * 0.1);
-			int minibuttonTop =    g.yres/8 + (g.yres * 0.1);
-            if (mousex >=minibuttonLeft &&
-			mousex <= minibuttonRight &&
-			mousey >= minibuttonBottom &&
-			mousey <= minibuttonTop) {
-				info = !info;
-			}
-			
+    if (e->type == ButtonPress) {
+        if (e->xbutton.button==1) {
 
-			}
-			}
-		}
-	}
-	
+            int mousex = e->xbutton.x;
+            int mousey = g.yres - e->xbutton.y;
+
+            //XSync(Display, 0);
+
+            if (!g.paused) {
+                check_button(START, mousex, mousey, bat);
+            }
+            if (g.paused) {
+                check_button(INFO, mousex, mousey, bat);
+                check_button(PAUSE, mousex, mousey, bat);
+            }
+            if (info) {
+                check_button(CLOSE_INFO, mousex, mousey, bat);
+            }
+            if (g.isGameOver){
+                check_button(RETURN, mousex, mousey, bat);
+                check_button(QUIT, mousex, mousey, bat);
+            }
+        }
+    }
+
 	if (savex != e->xbutton.x || savey != e->xbutton.y) {
 		//Mouse moved
 		savex = e->xbutton.x;
@@ -1080,7 +1084,6 @@ void render()
 	render_menu();
     render_Pmenu();
 	render_controlInfo();
+	render_GameOverScreen();
 
 }
-
-

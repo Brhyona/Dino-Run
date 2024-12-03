@@ -43,6 +43,7 @@ private:
 public:
     Player(Image* img[NUM_STATES], float x, float y, int w, int h);
     Hitbox getPlayerHitbox() const { return this->hitbox; }
+    //const Hitbox& getHitbox() const { return hitbox; }
     GLuint getTexture();
     float getX() const;
     float getY() const;
@@ -65,6 +66,7 @@ public:
     
     void takeDamage(int damage) {return playerHealth.TakeDamage(damage);}
     int getCurrentHealth() const {return playerHealth.GetCurrentHealth();}
+    void heal(int amount) { playerHealth.Heal(amount); }
     bool isDead() const {return playerHealth.IsDead();} 
     void render();
     ~Player();
