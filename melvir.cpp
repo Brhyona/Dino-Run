@@ -11,7 +11,7 @@
 constexpr float MOVE_SPEED = 9.0f;
 constexpr float JUMP_SPEED = 8.0f;
 constexpr float DASH_SPEED = 12.0f;
-constexpr float GRAVITY = 8.8f;
+constexpr float GRAVITY = 7.5f;
 constexpr float DASH_THRESHOLD = 0.30f;
 constexpr float PI = 3.14159265358979323846f;
 bool facingLeft = false;
@@ -153,56 +153,77 @@ void Player::triggerDash(int key) {
 }
 
 void Player::handleInput(int key, Sound &sound) {
-    
-    this->velocity[0] = 0.0f;
-//    this->velocity[1] = 0.0f;
+    this->velocity[0] = 0.0f; // Reset horizontal velocity unless overridden below
 
-    if(key == XK_Up){
-        g.jumping = true;
-        if (this->velocity[1] == 0.0f) { 
-            updateState(JUMP);
-            this->velocity[1] = JUMP_SPEED;
-            
-            #ifdef USE_OPENAL_SOUND
-            sound.playSound(g.alSourceJump);
-            if (alGetError() != AL_NO_ERROR) {
-                std::cout << "Sound play error!" << std::endl;
+    // Jumping logic
+    if (key == XK_Up) {
+        if (!g.jumping || this->velocity[1] < 0.0f) { // Allow jump if not jumping or while airborne
+            // Ensure maximum of 2 jumps
+            if (this->velocity[1] <= 0.0f) { // Prevent jumping if already double jumped
+                g.jumping = true;
+                updateState(JUMP);
+
+                // Reset vertical velocity for jump or double jump
+                this->velocity[1] = JUMP_SPEED;
+
+                // Ensure horizontal momentum for arc-like movement
+                if (g.moving) {
+                    // Enhance horizontal velocity during movement
+                    this->velocity[0] = (facingLeft ? -MOVE_SPEED : MOVE_SPEED) * 1.5f;
+                } else {
+                    // Default horizontal push when stationary
+                    this->velocity[0] = MOVE_SPEED * 1.0f; // Stronger push to emphasize the arc
+                    facingLeft = false; // Force facing right for default jumps
+                }
+
+                // Debugging output
+                std::cout << "Player jumped! VelocityY: " << this->velocity[1]
+                          << ", VelocityX: " << this->velocity[0] << std::endl;
             }
-            #endif
-            
-            if (g.moving) {
-                this->velocity[0] = (facingLeft ? -MOVE_SPEED : MOVE_SPEED) * 10.0f;   // Slight boost when running
-            }
-            //std::cout << "Player jumped: velocityY=" << this->velocity[1]
-            //      << ", positionY=" << this->position[1] << std::endl;
         }
-    } else if (key == XK_Left) {
+    }
+
+    // Movement logic
+    else if (key == XK_Left) {
         g.moving = true;
-        this->velocity[0] = MOVE_SPEED; 
+        this->velocity[0] = -MOVE_SPEED; // Move left
+        facingLeft = true;
     } else if (key == XK_Right) {
         g.moving = true;
-        this->velocity[0] = MOVE_SPEED; 
+        this->velocity[0] = MOVE_SPEED * 0.5f; // Move right
+        facingLeft = false;
     } else {
-        this->velocity[0] = 0.0f;
-    } 
+        this->velocity[0] = 0.0f; // No movement input
+    }
 
+    // Additional switch-based handling (if needed for future features)
     switch (key) {
-        case XK_Left: 
+        case XK_Left:
             updateState(MOVE);
             this->position[0] -= MOVE_SPEED;
             facingLeft = true;
             break;
-        case XK_Right: 
+        case XK_Right:
             updateState(MOVE);
             this->position[0] += MOVE_SPEED;
             facingLeft = false;
             break;
         case XK_Up:
+            // Already handled above; keep here for compatibility
             updateState(JUMP);
-            this->position[1] += MOVE_SPEED;
             break;
-        case XK_Down: 
+        case XK_Down:
+            // Placeholder for potential crouch or drop logic
             break;
+    }
+
+    // Ensure momentum during jumps
+    if (g.jumping) {
+        if (facingLeft) {
+            this->velocity[0] = -MOVE_SPEED * 1.5f; // Maintain and boost leftward momentum
+        } else {
+            this->velocity[0] = MOVE_SPEED * 1.5f; // Maintain and boost rightward momentum
+        }
     }
 }
 
