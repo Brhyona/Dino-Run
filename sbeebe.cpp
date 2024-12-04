@@ -24,7 +24,7 @@ const int frameperact[NUM_EVIL_STATES] = {
 };
 
 Evil::Evil(Image* img[NUM_EVIL_STATES], float sx, float sy, float sw, float sh)
-    : sx(sx), sy(sy), sw(sw), sh(sh) {
+    : sx(sx), sy(sy), sw(sw), sh(sh), renderOffsetY(0.0f) {
 
         archHitbox = {sx - sw / 2, sy - sh / 2, sw, sh};
         /*position[0] = sx;
@@ -137,15 +137,63 @@ if (currentTimer) {
     this->position[1] += this->velocity[1] * deltaTime;
 }*/
 
+
+void Evil::alignArchHitboxToPlatform(float offsetY) {
+    renderOffsetY = offsetY; 
+}
+
+void Evil::resetArchHitboxAlignment() {
+    renderOffsetY = 0; 
+}
+
+void Evil::nofloat(const Platform &platforms, Player &player)
+ {
+     bool onPlatform = false;
+
+        PlatformNode* temp = platforms.getPlatformHead();
+     while (temp) {
+         const Hitbox& platformHitbox = temp->hitbox;
+      
+         if (archHitbox.x < platformHitbox.x + platformHitbox.width &&
+             archHitbox.x + archHitbox.width > platformHitbox.x &&
+             archHitbox.y >= platformHitbox.y &&
+             archHitbox.y - 5 <= platformHitbox.y + platformHitbox.height) {
+             onPlatform = true;
+
+             float offsetY = platformHitbox.y + platformHitbox.height - archHitbox.y;
+             //sy = offsetY;
+
+             alignArchHitboxToPlatform(offsetY);  // Custom function to adjust rendering or logic
+             break;
+            
+         }
+         temp = temp->next;
+     }
+     if (!onPlatform) {
+        resetArchHitboxAlignment();
+     }
+ }
+
+
 void Evil::follow(int x, int y, float deltaTime, Player &player) {
     float playerX = player.getX();
-    float playerY = player.getY();
-    const float followBehind = 100.0f;
-    const float followSpeed = 80.0f;
+    //float playerY = player.getY();
+    const float followBehind = 50.0f;
+    const float followSpeed = 20.0f;
     const Hitbox& playerHitbox = player.getPlayerHitbox();
 
-    float targetX = playerX - (playerX > sx ? followBehind : -followBehind);
-    float targetY = playerY;
+    float targetX = playerX - followBehind;
+    if (sx < targetX) {
+        sx += followSpeed * deltaTime;  // Move towards the target X position
+    } else if (sx > targetX) {
+        sx = targetX;  // Stop at the target X if the enemy goes too far ahead
+    }
+
+/*    float targetY = sy;
+
+    if (archHitbox.y != playerY) {
+        targetY = sy;  // Keep the vertical position constant (fall if needed)
+    }
 
     float dx = targetX - sx;
     float dy = targetY - sy;
@@ -153,11 +201,25 @@ void Evil::follow(int x, int y, float deltaTime, Player &player) {
 
     if (distance > 0.0f) {
         dx /= distance;
-        dy /= distance;
+        //dy /= distance;
     }
         sx += dx * followSpeed * deltaTime;
-        sy += dy * followSpeed * deltaTime;
-    //}
+        //sy += dy * followSpeed * deltaTime;
+*/
+    if (sx < 0) {
+        sx = 0;  // Prevent the enemy from going off the left side
+    }
+    if (sx > g.xres - sw) {
+        sx = g.xres - sw;  // Prevent the enemy from going off the right side
+    }
+
+    // Ensure the enemy stays within screen bounds vertically
+    /*if (sy < 0) {
+        sy = 0;  // Prevent the enemy from going off the top
+    }
+    if (sy > g.yres - sh) {
+        sy = g.yres - sh;  // Prevent the enemy from going off the bottom
+    }*/
 
     if (archHitbox.x < playerHitbox.x + playerHitbox.width &&
         archHitbox.x + archHitbox.width > playerHitbox.x &&
@@ -167,6 +229,54 @@ void Evil::follow(int x, int y, float deltaTime, Player &player) {
         updateAnimation(E_WHIP); // Switch to whipping animation
         player.takeDamage(10);   // Deal 10 damage to the player
     }
+}
+
+void Evil::updatePosition(PlatformNode* platform) {
+    // Check if the enemy is on the platform
+    if (isOnPlatform(platform)) {
+        this->sx = platform->x; // Follow the platform's x position
+        this->sy = platform->y; // Follow the platform's y position
+    } else {
+    }
+}
+
+bool Evil::isOnPlatform(PlatformNode* platform) {
+    // Check if the enemy's hitbox intersects with the platform's hitbox
+    const Hitbox& platformHitbox = platform->hitbox;
+    //const Hitbox& archHitbox = this->hitbox;
+
+    return (archHitbox.x < platformHitbox.x + platformHitbox.width &&
+            archHitbox.x + archHitbox.width > platformHitbox.x &&
+            archHitbox.y >= platformHitbox.y &&
+            archHitbox.y - 5 <= platformHitbox.y + platformHitbox.height);
+}
+
+void Evil::applyGravity(float deltaTime, Platform* platform) {
+    if (!isOnAnyPlatform(platform)) {
+        // Apply gravity to the enemy
+        this->sy -= gravity * deltaTime; // Gravity effect
+    } else {
+        
+        PlatformNode* temp = platform->getPlatformHead();
+        const Hitbox& platformHitbox = temp->hitbox;
+
+        // If the enemy is falling and hits the platform
+        if (this->sy > platformHitbox.y + platformHitbox.height) {
+            // Ensure the enemy's y position is aligned with the platform's top
+            this->sy = platformHitbox.y + platformHitbox.height;
+    }
+}
+}
+
+bool Evil::isOnAnyPlatform(Platform* platform)  {
+    // Check if the enemy is on any platform
+    // This would involve checking all platforms in your game
+    for (PlatformNode* platformNode = platform->getPlatformHead(); platformNode != nullptr; platformNode = platformNode->next) {
+        if (isOnPlatform(platformNode)) {
+            return true; // Enemy is on this platform
+        }
+    }
+    return false;
 }
 
 void Evil::render() {
@@ -187,7 +297,7 @@ void Evil::render() {
     
     // Render the current frame
     glPushMatrix();
-    glTranslatef(sx, sy, 0);
+    glTranslatef(sx, sy + renderOffsetY, 0);
     
 
     glBegin(GL_QUADS);
@@ -200,6 +310,8 @@ void Evil::render() {
         glTexCoord2f(tx1, 0.0f); 
         glVertex2f(-sw / 2, sh / 2);  // Top-left
     glEnd();
+    
+    updateAnimationTimers();
 
     glPopMatrix();
 

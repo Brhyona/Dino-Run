@@ -17,6 +17,7 @@ enum EnemyAnimation {
 
 class Player;
 class Platform;
+struct PlatformNode;
 
 class Evil {
     private:
@@ -27,6 +28,8 @@ class Evil {
     //Vec velocity;
     float sx, sy;   // Archeologist's x and y position
     float sw, sh, frameduration; // archeologist's width and height
+    float renderOffsetY = 0.0f;
+    const float gravity = -9.8f;
     int evilcurrentFrame; // Current Frame
     int framedex = 0;
 
@@ -37,6 +40,13 @@ class Evil {
     void updateAnimationTimers();
     void updateEnemy(float deltaTime);
     void movement();
+    void alignArchHitboxToPlatform(float offsetY); // Method to apply alignment
+    void resetArchHitboxAlignment();
+    void nofloat(const Platform &platforms, Player &player);
+    bool isOnAnyPlatform(Platform* platform);
+    bool isOnPlatform(PlatformNode* platform);
+    void updatePosition(PlatformNode* platform);
+    void applyGravity(float deltaTime, Platform *platform);
     void render();   // Render the enemy sprite
     GLuint getTexture();
     void setPosition(float newX, float newY);
