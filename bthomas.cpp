@@ -417,7 +417,7 @@ void check_button(ButtonType type,
             button = Button(0.1f, 0.15f);
             if (button.isClicked(mousex, mousey)) {
                 g.isGameOver = false;
-                start = true;
+                render_menu();
             }
             break;
 

@@ -1,17 +1,19 @@
 // Game Over Screen, players damage over time, and speed the game after 30 seconds
-// Gain 10 coins, get 10 health. 
 
 #include <GL/glx.h>
 #include <iostream>
 #include "src/setup/Global.h"
 #include "src/setup/health.h"
 #include "src/setup/melvir.h"
+#include "src/setup/bthomas.h"
 #include <chrono>
 #include <vector>
 #include <algorithm>
 
 extern Global g;
 extern bool start;
+
+void render_menu();
 
 Health::Health(int max_hp) : max_health(max_hp), current_health(max_hp) {
     lastDamageTime = std::chrono::steady_clock::now();
@@ -211,16 +213,13 @@ void gameLoop() {
     if (health.GetCurrentHealth() <= 0) {
         gameOver = true;
         g.isGameOver = true;
-
-        if (health.IsDead()) {
-        }
+        render_GameOverScreen();
+        return;
     }
 
     if (gameOver) {
-        if (gameOver) {
-            render_GameOverScreen();
-            return;
-        }
+        render_GameOverScreen();
+        return;
     }
 
     auto currentTime = std::chrono::steady_clock::now();
@@ -233,11 +232,6 @@ void gameLoop() {
     if (damageTimer >= DAMAGE_INTERVAL) {
         int damageAmount = static_cast<int>(10.0f * gameSpeedMultiplier);
         health.TakeDamage(damageAmount);
-
-        if (health.GetCurrentHealth() <= 0) {
-            gameOver = true;
-            g.isGameOver = true;
-        }
 
         damageTimer = 0.0f;
     }
@@ -276,7 +270,10 @@ void check_buttons(int mousex, int mousey) {
     // Return button is clicked
     if (isMouseOverButton(mousex, mousey, restartButtonLeft, restartButtonRight, restartButtonBottom, restartButtonTop)) {
         g.isGameOver = false;
-        start = true;
+        gameOver = false;
+
+        render_menu();
+
     }
 }
 
